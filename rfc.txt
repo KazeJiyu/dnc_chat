@@ -267,9 +267,53 @@ Command details
       FILE command
       
          Commands: FILE
-         Arguments: <recipient> <file_name> <file_size>
+         Arguments: <recipient> <file_name> <file_size> <port> [<ip>]
          
-         ...
+         This command makes possible to send a file to another client.
+         
+         When this command is received by the server, it broadcasts it 
+         to the recipient. If the recipient wants to download the file,
+         he must create a TCP connection with the sender, which can be 
+         addressed at the specified address, and sends him the following
+         message : 
+            
+            "ACCEPT FILE"
+            
+         If the recipient does not want to download the file, he must 
+         send :
+         
+            "REFUSE FILE"
+            
+         instead.
+         
+         Once the sender has received the confirmation, it can start
+         transfering the file. The data are sent in a binary format.
+         
+         <recipient> is the pseudonym of the client which should receive
+         the file. 
+         
+         <file_name> is the name of the file, while <file_size> is its
+         size in octet.
+         
+         <ip> and <port> form the address where the sender can be
+         addressed by the recipient. If no <ip> is specified by the
+         server, it will be deduced automatically.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
+            ERR_NICKNAMENOTEXIST
+            
+         Examples:
+         
+            FILE jack sourire.png 1080 8456 ; joe sends a file to jack
+            100 RPL_DONE                    ; the server forwarded it
+            :joe FILE sourire.png 1080 8456 ; jack received the demand
+            
+            ; jack sends a TCP socket to joe's address IP, at port 8456
+            ACCEPT FILE
+            
+            ; joe can now start sending the file
       
    Client's status management
    
