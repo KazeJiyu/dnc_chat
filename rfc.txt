@@ -1,7 +1,7 @@
                                                                L. Calvis
                                                                E. Chebbi
-                                                               M. Lannes
 							         R. Cros
+                                                               M. Lannes
                                                                
                     Dog is Not a Cat Protocol (DNC)                    
 
@@ -223,7 +223,7 @@ Command details
          Command: MUTE
          Arguments: <pseudonym> ...
          
-         Specify to the server that we don't want to receive messages
+         Specifies to the server that we don't want to receive messages
          from <pseudonym> anymore. Several <pseudonym> can be specified,
          and must be separated by a space.
          
@@ -388,7 +388,7 @@ Command details
          Command: NAMES
          No argument
          
-         Ask the list of clients to the server. The associated response 
+         Asks the list of clients to the server. The associated response 
          returns the pseudonyms separated by a space.
          
          Possible answers:
@@ -449,37 +449,3 @@ Responses
       | 100  | RPL_DONE              | Success                        |
       | 101  | RPL_NAMES             | Returns a list of pseudos      |
       +------+-----------------------+--------------------------------+
-   
-   
-
-Server behavior
-
-   A DNC server must wait for connexion requests. When a client 
-   attempts to connect to the server, it must specify its pseudo. If 
-   this pseudo is available, the server must both log the client in 
-   under the given pseudo and warn already connected clients that a new 
-   client has just logged in.
-   
-   When a client logs out, the server must warn remaining clients that 
-   the pseudo has just logged out.
-   
-Available actions for clients
-
-   Clients can send commands to the server. The server must dispatch the
-   commands to their recipient. By default, all the clients except the
-   sender are recipients, but that may change according to commands (see
-   "Control commands" for further details). The dispatched command must
-   contain both the content of the original command and the pseudo of 
-   the sender.
-   
-   Clients can also send "control commands". Such commands may modify 
-   the state of the client, the recipients or ask the server to return 
-   some informations. They are detailed in following paragraph.
-   
-Format of server's responses
-
-   Code status
-
-      A response from the server must start by a three-digit integer
-      code. This code indicates the status of the request -- if it has
-      been fulfilled, if an error occurred, etc.
