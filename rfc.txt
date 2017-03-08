@@ -1,0 +1,406 @@
+                                                               L. Calvis
+                                                               E. Chebbi
+                                                               R. Cros
+                                                               M. Lannes
+                                                               
+                    Dog is Not a Cat Protocol (DNC)                    
+
+Status of this Memo
+
+   This memo describes the DNC protocol, which allows several clients to
+   connect to a DNC server and a DNC server to discuss with its clients
+   through a TCP connexion.
+   
+Abstract
+
+   This memo is dedicated to the ones who would implement a DNC server 
+   or client.
+
+Table of Contents
+
+
+Introduction
+
+   DNC is a protocol built on the top of TCP. It allows several clients
+   to discuss through a common server.
+   
+   Glossary
+   
+      Client
+   
+         A client is all that can establish a connection with a server. 
+         Each client is identified by a unique pseudonym, which has a
+         maximum length of ten (10) characters.
+         
+      Message
+      
+         In this document, this term is used to describe the content of
+         
+      Request
+      
+         A request refers to a real TCP request sent by either a server 
+         or a client.
+
+      Server
+   
+         Servers are aimed to handle clients' requests and forward
+         messages to others clients.
+   
+The DNC Specification
+
+   Overview
+   
+   Character encoding
+   
+      All messages between servers and clients must be encoding in UTF-8
+      format. 
+   
+   Messages
+   
+      Both clients and servers can send messages to each other, which
+      may generate a reply.
+      
+      In the formats presented below, a parameter surrounded by chevrons
+      (<>) is a variable. A parameter surrounded by brackets ([]) is
+      optional. A parameter followed by three suspension points (...) 
+      can be specified several times. Any other character is a literal 
+      string and must be kept as it is.
+      
+      Message format
+      
+         The exact format of the request depends on whether the sender
+         is the client or the server. That said, it is essentially the 
+         same, with only one little difference.
+         
+         When a client wants to send a message to a server, it has to
+         respect the following format:
+         <COMMAND> [<argument> ...]
+         
+         <COMMAND> refers to an existing commands, which are described
+         within the "Command details" paragraph. A command can be
+         followed by zero, one or more arguments. Commands and arguments
+         must be separated by a unique space.
+         
+         When the server wants to send a message to a client, it follows
+         roughly the same syntax, except that the first element of the 
+         request is the pseudonym of the client prefixed by a colon (:),
+         as below:
+         :<sender_pseudonym> <COMMAND> [<argument> ...]
+         
+         If the sender is the server, then the sender pseudonym is 
+         "@server". That's why clients are not allowed to chose this as
+         a pseudonym (see "NICK command").
+         
+         Examples of commands are presented in the next paragraphs.
+         
+      Reply format
+      
+         Replies' format is the same, no matter who the sender is.
+         It is described below:
+         <status_code> <status_name> [<human_readable_message>]
+         
+         - status_code is a three-digit number which identifies
+         the nature of the answer. 
+         
+         - status_name is a short name describing the nature of the
+         answer.
+         
+         - human_readable_message is a message that can be read by a
+         human and that described the reply in more details.
+         
+         For a further explanation about these three items, please see
+         the "Responses" paragraph.
+         
+      When a message is received, one can easily whether it is a reply 
+      or a request : if the message starts by a colon (:), then it is a
+      request whose sender is the pseudonym after the colon. Otherwise,
+      it is a reply.
+   
+Command details
+
+   Connection Registration
+   
+      CONNECT command
+      
+         Command: CONNECT
+         Arguments: <pseudonym>
+      
+         The first command that must be sent to the server in order to
+         log in.
+         
+         When a client logs in, the server must send a message to all 
+         others clients in order to let them known that someone just
+         logged in.
+         
+         Restrictions:
+         
+            All the restrictions of the NICK command also applies here.
+            
+            Moreover, a client that uses CONNECT must not be already
+            connected.
+         
+         Possible answers:
+         
+            All the answers of the NICK command.
+         
+            ERR_ALREADYCONNECTED
+            
+         Examples:
+         
+            CONNECT Sapin     ; a client attempt to log in as "Sapin"
+            100 RPL_DONE      ; this is the server's response
+            :Sapin CONNECT    ; this is sent to others clients
+                                to inform them of the new user
+      
+      QUIT command
+      
+         Command: QUIT
+         Arguments: [<quit_message>]
+         
+         Ends a client session. When receiving this message, the server
+         must close the connection to the client. If a <quit_message> is
+         specified, it will be transmitted to others clients.
+         
+         Restrictions:
+         
+            The client must be logged in
+            
+         Possible answers:
+         
+            ERR_NOTCONNECTED
+         
+         Examples: 
+         
+            QUIT           ; client "Sapin" wants to end the connection
+            :Sapin QUIT    ; received by all others clients 
+      
+   Communication between clients
+   
+      MESSAGE command
+      
+         Command: MESSAGE
+         Arguments: <message>
+         
+         Sends a message to all other connected clients.
+         
+         Restrictions:
+         
+            The client must be logged in.
+            
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
+            ERR_BADSTATUS
+         
+         Examples:
+         
+            MESSAGE Hello all!         ; client "Sapin" sends a message
+            100 RPL_DONE               ; the response from the server
+            :Sapin MESSAGE Hello all!  ; received by other clients
+      
+      WHISPER command
+      
+         Command: WHISPER
+         Arguments: <pseudonym> [,<pseudonym> ...] <message>
+         
+         Sends a private message to <pseudonym>. Several recipients can
+         be specified by separating their pseudo by a comma (,)
+         
+         Possible answers: 
+            
+            ERR_NOTCONNECTED     ERR_NICKNAMENOTEXIST
+            ERR_NOTENOUGHARGS
+            
+         Examples:
+         
+            WHISPER jack Hello, jack   ; "joe" sends a private message
+            100 RPL_DONE               ; response from the server
+            :joe WHISPER Hello, jack   ; "jack" is the only one who 
+                                         received this
+      
+      MUTE command
+      
+         Command: MUTE
+         Arguments: <pseudonym> ...
+         
+         Specify to the server that we don't want to receive messages
+         from <pseudonym> anymore. Several <pseudonym> can be specified,
+         and must be separated by a space.
+         
+         This command can be cancelled thanks to the LISTEN command.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
+            ERR_NICKNAMENOTEXIST
+            
+         Examples:
+         
+            MUTE jack joe     ; client "Sapin" won't received messages 
+                                from "jack" and "joe" anymore
+            100 RPL_DONE      ; response from the server
+      
+      LISTEN command
+      
+         Command: LISTEN
+         Arguments: <pseudonym> ...
+         
+         This commands cancels the effect the LISTEN command.
+         
+         Specify to the server that we want to receive messages from 
+         <pseudonym> again. Several <pseudonym> can be specified, and
+         must be separated by a space.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
+            ERR_NICKNAMENOTEXIST
+            
+         Examples:
+         
+            LISTEN jack       ; client "Sapin" will received messages 
+                                from jack again
+            100 RPL_DONE      ; response from the server
+      
+   File transfer
+   
+      FILE command
+      
+         Commands: FILE
+         Arguments: <recipient> <file_name> <file_size>
+         
+         ...
+      
+   Client's status management
+   
+      NICK command
+      
+         Command: NICK
+         Arguments: <pseudonym>
+         
+         Changes the current pseudonym of the client to <pseudonym>.
+         
+         Restrictions:
+         
+            The maximum length of the pseudonym is of 10 characters, and
+            it cannot start by an "at" symbol (@).
+            
+            Moreover, the name cannot contains a comma (,).
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
+            ERR_NICKNAMEINUSE    ERR_INVALIDNICKNAME
+            
+         Examples:
+         
+            NICK S~           ; client "Sapin" ask to be renamed as "S~"
+            100 RPL_DONE      ; response from server
+            :Sapin NICK S~    ; received by other clients
+      
+      AWAY command
+      
+         Command: AWAY
+         No argument
+         
+         Specifies that the client cannot send message (through MESSAGE)
+         anymore, but can still receive ones.
+         
+         This command can be canceled thanks to the RE command.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED
+            
+         Examples:
+         
+            AWAY                 ; the client ask to be away
+            100 RPL_DONE         ; response from server
+         
+      RE command
+      
+         Command: RE
+         No argument
+         
+         This command cancels the effect of the AWAY command.
+         
+         Specifies that the client is active again. It can now send
+         messages again using the MESSAGE command.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED     ERR_BADSTATUS
+            
+         Examples:
+
+            RE                      ; the client ask to come back
+            202 ERR_BADSTATUS       ; error: the client wasn't away
+      
+   Operations on server
+   
+      NAMES command
+      
+         Command: NAMES
+         No argument
+         
+         Ask the list of clients to the server. The associated response 
+         returns the pseudonyms separated by a space.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED
+            
+         Examples:
+         
+            LIST                    ; the client asks others' name
+            101 RPL_NAMES jack joe  ; jack and joe are connected 
+            
+      
+Responses
+
+   Status codes
+   
+      A status code is a three-digit number that indicates the nature of
+      the response.
+      
+      The first digit corresponds to the class of the response. The 
+      latter two identify the precise answer. The available classes are
+      the following:
+      
+      - 1xx (Successful): The request was successfully received, 
+      understood and processed.
+      
+      - 2xx (Error): The request contains bad syntax or cannot be 
+      fulfilled.
+
+   Error messages
+   
+      This paragraph presents all the error messages, and their
+      corresponding status code as well.
+      
+      +------+-----------------------+--------------------------------+
+      | Code |     Status name       |          Explanation           |
+      +------+--------------------------------------------------------+
+      | 200  | ERR_ALREADYCONNECTED  | The client is already connected|
+      | 201  | ERR_NOTCONNECTED      | The client is not connected    |
+      | 202  | ERR_BADSTATUS         | The status of the client, such |
+      |      |                       | as AWAY, forbade the request   |
+      | 203  | ERR_NOTENOUGHARGS     | The request has not enough args|
+      | 204  | ERR_NICKNAMENOTEXIST  | Requested nick does not exist  |
+      | 205  | ERR_NICKNAMEINUSE     | Requested nick is already used |
+      | 206  | ERR_INVALIDNICKNAME   | Requested nick is not valid    |
+      | 298  | ERR_MALFORMEDREQUEST  | Request could not be recognized|
+      [ 299  | ERR_INTERNALERRO      | An internal error occurred     |
+      +------+-----------------------+--------------------------------+
+   
+   Command replies
+   
+      This paragraph presents all the possible answers to a successful
+      request.
+      
+      +------+-----------------------+--------------------------------+
+      | Code |     Status name       |          Explanation           |
+      +------+--------------------------------------------------------+
+      | 100  | RPL_DONE              | Success                        |
+      | 101  | RPL_NAMES             | Returns a list of pseudos      |
+      +------+-----------------------+--------------------------------+
