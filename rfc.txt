@@ -1,19 +1,19 @@
                                                                L. Calvis
                                                                E. Chebbi
-                                                               R. Cros
                                                                M. Lannes
+							         R. Cros
                                                                
                     Dog is Not a Cat Protocol (DNC)                    
 
 Status of this Memo
 
    This memo describes the DNC protocol, which allows several clients to
-   connect to a DNC server and a DNC server to discuss with its clients
+   connect to a DNC server, and a DNC server to discuss with its clients
    through a TCP connexion.
    
 Abstract
 
-   This memo is dedicated to the ones who would implement a DNC server 
+   This memo is dedicated to the people who would implement a DNC server 
    or client.
 
 Table of Contents
@@ -34,7 +34,7 @@ Introduction
          
       Message
       
-         In this document, this term is used to describe the content of
+         In this document, this term is used to describe the content of 
          
       Request
       
@@ -43,7 +43,7 @@ Introduction
 
       Server
    
-         Servers are aimed to handle clients' requests and forward
+         Servers are aimed to handle clients' requests and to forward    
          messages to others clients.
    
 The DNC Specification
@@ -52,7 +52,7 @@ The DNC Specification
    
    Character encoding
    
-      All messages between servers and clients must be encoding in UTF-8
+      All messages between servers and clients must be encoded in UTF-8
       format. 
    
    Messages
@@ -76,10 +76,10 @@ The DNC Specification
          respect the following format:
          <COMMAND> [<argument> ...]
          
-         <COMMAND> refers to an existing commands, which are described
-         within the "Command details" paragraph. A command can be
-         followed by zero, one or more arguments. Commands and arguments
-         must be separated by a unique space.
+         <COMMAND> refers to an existing command ; all commands are
+         described within the "Command details" paragraph. A command can
+         be followed by zero, one or more arguments. Commands and 
+         arguments must be separated by a unique space.
          
          When the server wants to send a message to a client, it follows
          roughly the same syntax, except that the first element of the 
@@ -87,11 +87,11 @@ The DNC Specification
          as below:
          :<sender_pseudonym> <COMMAND> [<argument> ...]
          
-         If the sender is the server, then the sender pseudonym is 
-         "@server". That's why clients are not allowed to chose this as
+         If the sender is the server, then the sender's pseudonym is 
+         "@server". That's why clients are not allowed to choose this as
          a pseudonym (see "NICK command").
          
-         Examples of commands are presented in the next paragraphs.
+         Examples of commands are presented in the next paragraph.
          
       Reply format
       
@@ -106,15 +106,15 @@ The DNC Specification
          answer.
          
          - human_readable_message is a message that can be read by a
-         human and that described the reply in more details.
+         human and that describes the reply in more details.
          
          For a further explanation about these three items, please see
          the "Responses" paragraph.
          
-      When a message is received, one can easily whether it is a reply 
-      or a request : if the message starts by a colon (:), then it is a
-      request whose sender is the pseudonym after the colon. Otherwise,
-      it is a reply.
+      When a message is received, one can easily tell whether it is a 
+      reply or a request : if the message starts by a colon (:), then it
+      is a request whose sender is the pseudonym after the colon. 
+      Otherwise, it is a reply.
    
 Command details
 
@@ -129,12 +129,12 @@ Command details
          log in.
          
          When a client logs in, the server must send a message to all 
-         others clients in order to let them known that someone just
+         the other clients in order to let them known that someone just
          logged in.
          
          Restrictions:
          
-            All the restrictions of the NICK command also applies here.
+            All the restrictions of the NICK command also apply here.
             
             Moreover, a client that uses CONNECT must not be already
             connected.
@@ -147,9 +147,9 @@ Command details
             
          Examples:
          
-            CONNECT Sapin     ; a client attempt to log in as "Sapin"
+            CONNECT Sapin     ; a client attempts to log in as "Sapin"
             100 RPL_DONE      ; this is the server's response
-            :Sapin CONNECT    ; this is sent to others clients
+            :Sapin CONNECT    ; this is sent to the other clients
                                 to inform them of the new user
       
       QUIT command
@@ -159,11 +159,11 @@ Command details
          
          Ends a client session. When receiving this message, the server
          must close the connection to the client. If a <quit_message> is
-         specified, it will be transmitted to others clients.
+         specified, it will be transmitted to the other clients.
          
          Restrictions:
          
-            The client must be logged in
+            The client must already be logged in.
             
          Possible answers:
          
@@ -172,7 +172,7 @@ Command details
          Examples: 
          
             QUIT           ; client "Sapin" wants to end the connection
-            :Sapin QUIT    ; received by all others clients 
+            :Sapin QUIT    ; received by all the other clients 
       
    Communication between clients
    
@@ -181,7 +181,7 @@ Command details
          Command: MESSAGE
          Arguments: <message>
          
-         Sends a message to all other connected clients.
+         Sends a message to all the other connected clients.
          
          Restrictions:
          
@@ -247,9 +247,9 @@ Command details
          
          This commands cancels the effect the LISTEN command.
          
-         Specify to the server that we want to receive messages from 
+         Specifies to the server that we want to receive messages from 
          <pseudonym> again. Several <pseudonym> can be specified, and
-         must be separated by a space.
+         must be separated by a single space.
          
          Possible answers:
          
@@ -258,7 +258,7 @@ Command details
             
          Examples:
          
-            LISTEN jack       ; client "Sapin" will received messages 
+            LISTEN jack       ; client "Sapin" will receive messages 
                                 from jack again
             100 RPL_DONE      ; response from the server
       
@@ -285,7 +285,7 @@ Command details
             The maximum length of the pseudonym is of 10 characters, and
             it cannot start by an "at" symbol (@).
             
-            Moreover, the name cannot contains a comma (,).
+            Moreover, the name cannot contain a comma (,).
          
          Possible answers:
          
@@ -294,8 +294,9 @@ Command details
             
          Examples:
          
-            NICK S~           ; client "Sapin" ask to be renamed as "S~"
-            100 RPL_DONE      ; response from server
+            NICK S~           ; client "Sapin" asks to be renamed as 
+                                "S~"
+            100 RPL_DONE      ; response from the server
             :Sapin NICK S~    ; received by other clients
       
       AWAY command
@@ -303,8 +304,8 @@ Command details
          Command: AWAY
          No argument
          
-         Specifies that the client cannot send message (through MESSAGE)
-         anymore, but can still receive ones.
+         Specifies that the client cannot send messages (through 
+         MESSAGE) anymore, but can still receive them.
          
          This command can be canceled thanks to the RE command.
          
@@ -314,7 +315,7 @@ Command details
             
          Examples:
          
-            AWAY                 ; the client ask to be away
+            AWAY                 ; the client asks to be away
             100 RPL_DONE         ; response from server
          
       RE command
@@ -333,7 +334,7 @@ Command details
             
          Examples:
 
-            RE                      ; the client ask to come back
+            RE                      ; the client asks to come back
             202 ERR_BADSTATUS       ; error: the client wasn't away
       
    Operations on server
@@ -404,3 +405,37 @@ Responses
       | 100  | RPL_DONE              | Success                        |
       | 101  | RPL_NAMES             | Returns a list of pseudos      |
       +------+-----------------------+--------------------------------+
+   
+   
+
+Server behavior
+
+   A DNC server must wait for connexion requests. When a client 
+   attempts to connect to the server, it must specify its pseudo. If 
+   this pseudo is available, the server must both log the client in 
+   under the given pseudo and warn already connected clients that a new 
+   client has just logged in.
+   
+   When a client logs out, the server must warn remaining clients that 
+   the pseudo has just logged out.
+   
+Available actions for clients
+
+   Clients can send commands to the server. The server must dispatch the
+   commands to their recipient. By default, all the clients except the
+   sender are recipients, but that may change according to commands (see
+   "Control commands" for further details). The dispatched command must
+   contain both the content of the original command and the pseudo of 
+   the sender.
+   
+   Clients can also send "control commands". Such commands may modify 
+   the state of the client, the recipients or ask the server to return 
+   some informations. They are detailed in following paragraph.
+   
+Format of server's responses
+
+   Code status
+
+      A response from the server must start by a three-digit integer
+      code. This code indicates the status of the request -- if it has
+      been fulfilled, if an error occurred, etc.
