@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>662</width>
+    <height>912</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dog is not a Chat</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../img/icon.png</normaloff>../img/icon.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>160</y>
+      <width>621</width>
+      <height>691</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout"/>
+   </widget>
+   <widget class="QLabel" name="msg_accueil">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>50</y>
+      <width>619</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Tahoma</family>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Messagerie instantanée</string>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>110</y>
+      <width>621</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="huge_label">
+     <item>
+      <widget class="QLabel" name="sub_msg">
+       <property name="font">
+        <font>
+         <family>Agency FB</family>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Dog is not a Chat</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="sub_lineEdit"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="sub_button">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>662</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMon_compte">
+    <property name="title">
+     <string>Mon compte</string>
+    </property>
+    <addaction name="actionChanger_de_pseudo"/>
+    <addaction name="actionSe_d_connecter"/>
+   </widget>
+   <widget class="QMenu" name="menuConversation">
+    <property name="title">
+     <string>Conversation</string>
+    </property>
+    <addaction name="actionPasser_en_mode_actif"/>
+    <addaction name="actionPasser_en_mode_inactif"/>
+    <addaction name="separator"/>
+    <addaction name="actionVoir_les_membres_connect_s"/>
+    <addaction name="actionLancer_une_conversation_priv_e"/>
+   </widget>
+   <addaction name="menuMon_compte"/>
+   <addaction name="menuConversation"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionChanger_de_pseudo">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Changer de pseudo</string>
+   </property>
+  </action>
+  <action name="actionSe_d_connecter">
+   <property name="text">
+    <string>Se déconnecter</string>
+   </property>
+  </action>
+  <action name="actionPasser_en_mode_actif">
+   <property name="text">
+    <string>Passer en mode actif</string>
+   </property>
+  </action>
+  <action name="actionPasser_en_mode_inactif">
+   <property name="text">
+    <string>Passer en mode inactif</string>
+   </property>
+  </action>
+  <action name="actionVoir_les_membres_connect_s">
+   <property name="text">
+    <string>Voir les membres connectés</string>
+   </property>
+  </action>
+  <action name="actionLancer_une_conversation_priv_e">
+   <property name="text">
+    <string>Lancer une conversation privée</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
