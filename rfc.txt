@@ -1,6 +1,6 @@
                                                                L. Calvis
                                                                E. Chebbi
-							         R. Cros
+                                                               R. Cros
                                                                M. Lannes
                                                                
                     Dog is Not a Cat Protocol (DNC)                    
@@ -17,45 +17,85 @@ Abstract
    or client.
 
 Table of Contents
+	
+	I - Introduction....................................................
+	   1. Glossary......................................................
+	      1.a Client....................................................
+	      1.b Message...................................................
+	      1.c Request...................................................
+	      1.d Reply.....................................................
+	      1.e Server....................................................
+	II - The DNC Specification..........................................
+	   1. Overview......................................................
+	   2. Character encoding............................................
+	   3. Messages......................................................
+	      3.a Message format............................................
+	      3.b Reply format..............................................
+	III - Command details...............................................
+	   1. Connection Registration.......................................
+	      1.a CONNECT command...........................................
+	      1.b QUIT command..............................................
+	   2. Communication between clients.................................
+	      2.a MESSAGE command...........................................
+	      2.b WHISPER command...........................................
+	      2.c MUTE command..............................................
+	      2.d LISTEN command............................................
+	   3. File transfer.................................................
+	      3.a FILE command..............................................
+	   4. Client's status management....................................
+	      4.a NICK command..............................................
+	      4.b AWAY command..............................................
+	      4.c RE command................................................
+	   5. Operations on server..........................................
+	      5.a NAMES command.............................................
+	IV - Responses......................................................
+	   1. Status codes..................................................
+	   2. Error messages................................................
+	   3. Command replies...............................................
 
-
-Introduction
+I - Introduction
 
    DNC is a protocol built on the top of TCP. It allows several clients
    to discuss through a common server.
    
-   Glossary
+   1. Glossary
    
-      Client
+      1.a Client
    
          A client is all that can establish a connection with a server. 
          Each client is identified by a unique pseudonym, which has a
          maximum length of ten (10) characters.
          
-      Message
+      1.b Message
       
-         In this document, this term is used to describe the content of 
+         In this document, this term is used to describe the content of
+         a socket sent by either a client or a server.
          
-      Request
+      1.c Request
       
-         A request refers to a real TCP request sent by either a server 
-         or a client.
+         A request is a special message in which the sender asks the 
+         recipient to do something or to return an information.
+         
+      1.d Reply
+     
+     	A reply is a special message that contains the response of a
+     	request.
 
-      Server
+      1.e Server
    
          Servers are aimed to handle clients' requests and to forward    
          messages to others clients.
    
-The DNC Specification
+II - The DNC Specification
 
-   Overview
+   1. Overview
    
-   Character encoding
+   2. Character encoding
    
       All messages between servers and clients must be encoded in UTF-8
       format. 
    
-   Messages
+   3. Messages
    
       Both clients and servers can send messages to each other, which
       may generate a reply.
@@ -66,7 +106,7 @@ The DNC Specification
       can be specified several times. Any other character is a literal 
       string and must be kept as it is.
       
-      Message format
+      3.a Message format
       
          The exact format of the request depends on whether the sender
          is the client or the server. That said, it is essentially the 
@@ -93,7 +133,7 @@ The DNC Specification
          
          Examples of commands are presented in the next paragraph.
          
-      Reply format
+      3.b Reply format
       
          Replies' format is the same, no matter who the sender is.
          It is described below:
@@ -116,11 +156,11 @@ The DNC Specification
       is a request whose sender is the pseudonym after the colon. 
       Otherwise, it is a reply.
    
-Command details
+III - Command details
 
-   Connection Registration
+   1. Connection Registration
    
-      CONNECT command
+      1.a CONNECT command
       
          Command: CONNECT
          Arguments: <pseudonym>
@@ -152,7 +192,7 @@ Command details
             :Sapin CONNECT    ; this is sent to the other clients
                                 to inform them of the new user
       
-      QUIT command
+      1.b QUIT command
       
          Command: QUIT
          Arguments: [<quit_message>]
@@ -174,9 +214,9 @@ Command details
             QUIT           ; client "Sapin" wants to end the connection
             :Sapin QUIT    ; received by all the other clients 
       
-   Communication between clients
+   2. Communication between clients
    
-      MESSAGE command
+      2.a MESSAGE command
       
          Command: MESSAGE
          Arguments: <message>
@@ -198,7 +238,7 @@ Command details
             100 RPL_DONE               ; the response from the server
             :Sapin MESSAGE Hello all!  ; received by other clients
       
-      WHISPER command
+      2.b WHISPER command
       
          Command: WHISPER
          Arguments: <pseudonym> [,<pseudonym> ...] <message>
@@ -218,7 +258,7 @@ Command details
             :joe WHISPER Hello, jack   ; "jack" is the only one who 
                                          received this
       
-      MUTE command
+      2.c MUTE command
       
          Command: MUTE
          Arguments: <pseudonym> ...
@@ -240,7 +280,7 @@ Command details
                                 from "jack" and "joe" anymore
             100 RPL_DONE      ; response from the server
       
-      LISTEN command
+      2.d LISTEN command
       
          Command: LISTEN
          Arguments: <pseudonym> ...
@@ -262,9 +302,9 @@ Command details
                                 from jack again
             100 RPL_DONE      ; response from the server
       
-   File transfer
+   3. File transfer
    
-      FILE command
+      3.a FILE command
       
          Commands: FILE
          Arguments: <recipient> <file_name> <file_size> <port> [<ip>]
@@ -315,9 +355,9 @@ Command details
             
             ; joe can now start sending the file
       
-   Client's status management
+   4. Client's status management
    
-      NICK command
+      4.a NICK command
       
          Command: NICK
          Arguments: <pseudonym>
@@ -343,7 +383,7 @@ Command details
             100 RPL_DONE      ; response from the server
             :Sapin NICK S~    ; received by other clients
       
-      AWAY command
+      4.b AWAY command
       
          Command: AWAY
          No argument
@@ -362,7 +402,7 @@ Command details
             AWAY                 ; the client asks to be away
             100 RPL_DONE         ; response from server
          
-      RE command
+      4.c RE command
       
          Command: RE
          No argument
@@ -381,9 +421,9 @@ Command details
             RE                      ; the client asks to come back
             202 ERR_BADSTATUS       ; error: the client wasn't away
       
-   Operations on server
+   5. Operations on server
    
-      NAMES command
+      5.a NAMES command
       
          Command: NAMES
          No argument
@@ -401,9 +441,9 @@ Command details
             101 RPL_NAMES jack joe  ; jack and joe are connected 
             
       
-Responses
+IV - Responses
 
-   Status codes
+   1. Status codes
    
       A status code is a three-digit number that indicates the nature of
       the response.
@@ -418,7 +458,7 @@ Responses
       - 2xx (Error): The request contains bad syntax or cannot be 
       fulfilled.
 
-   Error messages
+   2. Error messages
    
       This paragraph presents all the error messages, and their
       corresponding status code as well.
@@ -438,7 +478,7 @@ Responses
       [ 299  | ERR_INTERNALERRO      | An internal error occurred     |
       +------+-----------------------+--------------------------------+
    
-   Command replies
+   3. Command replies
    
       This paragraph presents all the possible answers to a successful
       request.
