@@ -9,7 +9,7 @@ Status of this Memo
 
    This memo describes the DNC protocol, which allows several clients to
    connect to a DNC server, and a DNC server to discuss with its clients
-   through a TCP connexion.
+   through a TCP connection.
    
 Abstract
 
@@ -285,7 +285,7 @@ III - Command details
          Command: LISTEN
          Arguments: <pseudonym> ...
          
-         This commands cancels the effect the LISTEN command.
+         This commands cancels the effect the MUTE command.
          
          Specifies to the server that we want to receive messages from 
          <pseudonym> again. Several <pseudonym> can be specified, and
