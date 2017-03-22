@@ -37,9 +37,9 @@ Table of Contents
 	      1.b QUIT command..............................................
 	   2. Communication between clients.................................
 	      2.a MESSAGE command...........................................
-	      2.b WHISPER command...........................................
-	      2.c MUTE command..............................................
-	      2.d LISTEN command............................................
+	      2.b ASK_WHISPER command.......................................
+	      2.c REPLY_WHISPER command.....................................
+	      2.d WHISPER command...........................................
 	   3. File transfer.................................................
 	      3.a FILE command..............................................
 	   4. Client's status management....................................
@@ -93,7 +93,7 @@ II - The DNC Specification
    2. Character encoding
    
       All messages between servers and clients must be encoded in UTF-8
-      format. 
+      format. The maximum length of a message is of 2048 bytes.
    
    3. Messages
    
@@ -237,19 +237,73 @@ III - Command details
             MESSAGE Hello all!         ; client "Sapin" sends a message
             100 RPL_DONE               ; the response from the server
             :Sapin MESSAGE Hello all!  ; received by other clients
+            
+      2.b ASK_WHISPER command
       
-      2.b WHISPER command
+         Command: ASK_WHISPER
+         Arguments: <pseudonym>
+         
+         Asks a client to start a private conversation.
+         When a private conversation has started between two clients,
+         then they can use the WHISPER command in order to send to
+         each other messages that will not be delivered to others
+         clients.
+         
+         When a client receives a ASK_WHISPER request, he is supposed
+         to reply with a REPLY_WHISPER request.
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED   ERR_NOTENOUGHARGS
+            ERR_NICKNAMENOTEXIST
+         	
+     	Examples:
+     	
+     		ASK_WHISPER joe		; jack wants to whisper to joe
+     		100 RPL_DONE		; the response from the server
+     		:jack ASK_WHISPER	; the message received by joe
+     		
+ 	  2.c REPLY_WHISPER command
+ 	  
+ 	     Command: REPLY_WHISPER
+ 	     Arguments: <pseudonym> YES|NO
+ 	     
+ 	     This method is used to make a reply after that a ASK_WHISPER
+ 	     has been received from the client <pseudonym>.
+ 	     
+ 	     The argument must be either "YES" if the sender accepts to 
+ 	     start a private conversation with <pseudonym>, or "NO" if
+ 	     he doesn't. The case of "YES" and "NO" is not relevant.
+ 	     
+ 	     Possible answers:
+ 	     
+ 	        ERR_NOTCONNECTED   ERR_NOTENOUGHARGS
+ 	        ERR_NICKNAMENOTEXIST
+ 	        
+ 	     Examples: 
+     	
+     		ASK_WHISPER joe		   ; jack wants to whisper to joe
+     		100 RPL_DONE		   ; the server respond to jack
+     		:jack ASK_WHISPER	   ; the message received by joe
+     		REPLY_WHISPER jack YES ; joe has accepted the proposition
+     		100 RPL_DONE		   ; the server respond to joe
+     		:joe REPLY_WHISPER YES ; jack receives joe's answer 
+     		
+      2.d WHISPER command
       
          Command: WHISPER
-         Arguments: <pseudonym> [,<pseudonym> ...] <message>
+         Arguments: <pseudonym> <message>
          
-         Sends a private message to <pseudonym>. Several recipients can
-         be specified by separating their pseudo by a comma (,)
+         Sends a private message to <pseudonym>.
+         
+         A private message can be sent to <pseudonym> only if a
+         ASK_WHISPER command has previously be sent and accepted
+         by him. 
          
          Possible answers: 
             
             ERR_NOTCONNECTED     ERR_NICKNAMENOTEXIST
-            ERR_NOTENOUGHARGS
+            ERR_NOTENOUGHARGS	 ERR_WHISPERNOTALLOWED
             
          Examples:
          
@@ -257,50 +311,36 @@ III - Command details
             100 RPL_DONE               ; response from the server
             :joe WHISPER Hello, jack   ; "jack" is the only one who 
                                          received this
+                                         
+      2.e STOP_WHISPER command
       
-      2.c MUTE command
-      
-         Command: MUTE
-         Arguments: <pseudonym> ...
+         Command: STOP_WHISPER
+         Arguments: <pseudonym>
          
-         Specifies to the server that we don't want to receive messages
-         from <pseudonym> anymore. Several <pseudonym> can be specified,
-         and must be separated by a space.
+         Stops the private conversation initiated with <pseudonym>.
          
-         This command can be cancelled thanks to the LISTEN command.
+         Once this command has been sent, no private message can be
+         either sent or received from <pseudonym> anymore.
          
          Possible answers:
          
-            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
-            ERR_NICKNAMENOTEXIST
+            ERR_NOTCONNECTED       ERR_NOTENOUGHARGS
+            ERR_NICKNAMENOTEXIST   
             
-         Examples:
-         
-            MUTE jack joe     ; client "Sapin" won't received messages 
-                                from "jack" and "joe" anymore
-            100 RPL_DONE      ; response from the server
-      
-      2.d LISTEN command
-      
-         Command: LISTEN
-         Arguments: <pseudonym> ...
-         
-         This commands cancels the effect the MUTE command.
-         
-         Specifies to the server that we want to receive messages from 
-         <pseudonym> again. Several <pseudonym> can be specified, and
-         must be separated by a single space.
-         
-         Possible answers:
-         
-            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
-            ERR_NICKNAMENOTEXIST
-            
-         Examples:
-         
-            LISTEN jack       ; client "Sapin" will receive messages 
-                                from jack again
-            100 RPL_DONE      ; response from the server
+        Examples:
+     	
+     		ASK_WHISPER joe		   ; jack wants to whisper to joe
+     		100 RPL_DONE		   ; the server respond to jack
+     		:jack ASK_WHISPER	   ; the message received by joe
+     		REPLY_WHISPER jack YES ; joe has accepted the proposition
+     		100 RPL_DONE		   ; the server respond to joe
+     		:joe REPLY_WHISPER YES ; jack receives joe's answer
+     		...                    ; some messages are sent 
+        	STOP_WHISPER joe       ; jack wants to stop whispering
+        	100 RPL_DONE           ; the response from the server
+        	:jack STOP_WHISPER     ; joe knows that he can't whisper
+        	WHISPER jack really ?  ; joe attempts to whisper anyway
+        	207 ERR_WHISPERNOTALLOWED ; and gets rejected
       
    3. File transfer
    
@@ -474,6 +514,7 @@ IV - Responses
       | 204  | ERR_NICKNAMENOTEXIST  | Requested nick does not exist  |
       | 205  | ERR_NICKNAMEINUSE     | Requested nick is already used |
       | 206  | ERR_INVALIDNICKNAME   | Requested nick is not valid    |
+      | 207  | ERR_WHISPERNOTALLOWED | Whispering is not allowed
       | 298  | ERR_MALFORMEDREQUEST  | Request could not be recognized|
       [ 299  | ERR_INTERNALERRO      | An internal error occurred     |
       +------+-----------------------+--------------------------------+
