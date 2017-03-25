@@ -41,7 +41,8 @@ Table of Contents
 	      2.c REPLY_WHISPER command.....................................
 	      2.d WHISPER command...........................................
 	   3. File transfer.................................................
-	      3.a FILE command..............................................
+	      3.a ASK_FILE command..........................................
+	      3.b REPLY_FILE command........................................
 	   4. Client's status management....................................
 	      4.a NICK command..............................................
 	      4.b AWAY command..............................................
@@ -201,6 +202,9 @@ III - Command details
          must close the connection to the client. If a <quit_message> is
          specified, it will be transmitted to the other clients.
          
+         If the client is connected, the connection is closed and no
+         response is sent from the server.
+         
          Restrictions:
          
             The client must already be logged in.
@@ -277,8 +281,8 @@ III - Command details
  	     
  	     Possible answers:
  	     
- 	        ERR_NOTCONNECTED   ERR_NOTENOUGHARGS
- 	        ERR_NICKNAMENOTEXIST
+ 	        ERR_NOTCONNECTED      ERR_NOTENOUGHARGS
+ 	        ERR_NICKNAMENOTEXIST  ERR_BADARGUMENT
  	        
  	     Examples: 
      	
@@ -343,58 +347,82 @@ III - Command details
         	207 ERR_WHISPERNOTALLOWED ; and gets rejected
       
    3. File transfer
-   
-      3.a FILE command
+         
+      3.a ASK_FILE command
       
-         Commands: FILE
-         Arguments: <recipient> <file_name> <file_size> <port> [<ip>]
+         Command: ASK_FILE
+         Arguments: <recipient> <file_size> <file_name>
          
-         This command makes possible to send a file to another client.
+         This command can be used by a client in order to send a file
+         to another one.
          
-         When this command is received by the server, it broadcasts it 
-         to the recipient. If the recipient wants to download the file,
-         he must create a TCP connection with the sender, which can be 
-         addressed at the specified address, and sends him the following
-         message : 
-            
-            "ACCEPT FILE"
-            
-         If the recipient does not want to download the file, he must 
-         send :
+         The size of the file must be specified in bytes.
          
-            "REFUSE FILE"
-            
-         instead.
+         Once received by the server, a unique id will be generated to
+         identify the request, which is then broadcast to <recipient>
+         in the following format:
          
-         Once the sender has received the confirmation, it can start
-         transfering the file. The data are sent in a binary format.
+         :sender ASK_FILE <id> <file_size> <file_name>
          
-         <recipient> is the pseudonym of the client which should receive
-         the file. 
+         The id makes possible to send different files with both the
+         same name and length.
          
-         <file_name> is the name of the file, while <file_size> is its
-         size in octet.
-         
-         <ip> and <port> form the address where the sender can be
-         addressed by the recipient. If no <ip> is specified by the
-         server, it will be deduced automatically.
+         The recipient can then respond thanks to the REPLY_FILE
+         command.
          
          Possible answers:
          
-            ERR_NOTCONNECTED     ERR_NOTENOUGHARGS
-            ERR_NICKNAMENOTEXIST
+             ERR_NOTCONNECTED   ERR_NICKNAMENOTEXIST
+             ERR_NOTENOUGHARGS
+             
+         Examples:
+         
+            ASK_FILE joe 400 truc.txt   ; jack attempts to send a file
+            102 RPL_FILE azEr4          ; the server responds with the
+                                          id of the request
+            :jack ASK_FILE azEr4 400 truc.txt ; received by joe
+   
+      3.b REPLY_FILE command
+      
+         Command: ACCEPT_FILE
+         Arguments: <request_id> <file_sender> YES|NO [<port>]
+         
+         This command is aimed to reply to a ASK_FILE request.
+         
+         If the client accepts to receive the file from <file_sender>,
+         he must respond "YES", or "NO" otherwise. The case is not
+         relevant.
+       
+         If the answer is "YES", then the sender must start an UDP
+         connection with the recipient. The ip address of the recipient
+         will be provided by the server, while the port is directly
+         specified by the file receiver.
+         
+         Finally, if the recipient accepts to download the file, the 
+         the message received by the client who wants to send the file
+         is of the following format:
+         
+         :<file_receiver> REPLY_FILE <id> YES <port> <ip>
+         
+         Possible answers:
+         
+            ERR_NOTCONNECTED   ERR_NICKNAMENOTEXIST
+            ERR_NOTENOUGHARGS
             
          Examples:
          
-            FILE jack sourire.png 1080 8456 ; joe sends a file to jack
-            100 RPL_DONE                    ; the server forwarded it
-            :joe FILE sourire.png 1080 8456 ; jack received the demand
+            ASK_FILE joe 400 truc.txt   ; jack attempts to send a file
+            102 RPL_FILE azEr4          ; the server responds with the
+                                          id of the request
+            :jack ASK_FILE azEr4 400 truc.txt ; received by joe
             
-            ; jack sends a TCP socket to joe's address IP, at port 8456
-            ACCEPT FILE
+            REPLY_FILE azEr4 YES 8456 ; joe accepts to receive the file
+                                        on the port 8456
+            100 RPL_DONE              ; response from the server
             
-            ; joe can now start sending the file
-      
+            :joe REPLY_FILE YES 8456 192.168.1.1 ; received by jack
+         
+   
    4. Client's status management
    
       4.a NICK command
@@ -514,7 +542,8 @@ IV - Responses
       | 204  | ERR_NICKNAMENOTEXIST  | Requested nick does not exist  |
       | 205  | ERR_NICKNAMEINUSE     | Requested nick is already used |
       | 206  | ERR_INVALIDNICKNAME   | Requested nick is not valid    |
-      | 207  | ERR_WHISPERNOTALLOWED | Whispering is not allowed
+      | 207  | ERR_WHISPERNOTALLOWED | Whispering is not allowed      |
+      | 208  | ERR_BADARGUMENT       | The arguments are not conformed|
       | 298  | ERR_MALFORMEDREQUEST  | Request could not be recognized|
       [ 299  | ERR_INTERNALERRO      | An internal error occurred     |
       +------+-----------------------+--------------------------------+
@@ -529,4 +558,5 @@ IV - Responses
       +------+--------------------------------------------------------+
       | 100  | RPL_DONE              | Success                        |
       | 101  | RPL_NAMES             | Returns a list of pseudos      |
+      | 102  | RPL_FILE              | Returns the id of the request  |
       +------+-----------------------+--------------------------------+
