@@ -7,6 +7,12 @@ import logging
 class Connection():
     '''
     Represents a connection with a server's client.
+    
+    Besides the methods described in this class, some methods
+    can be added to instances according to the type of connection.
+    
+    For example, in the case of a TCP connection, instances may have
+    methods to write to the server. 
     '''
 
     def on_connection_started(self):
@@ -77,6 +83,17 @@ class Protocol:
 
 class TcpServer():
     """
+    A server that can handle TCP requests.
+    
+    Request process:
+    -----------------
+        The process of requests is delegated to the given protocol.
+    
+        The connections created are filled with the following methods:
+            - write(str): writes a message to the connection's client
+            - write_to(pseudo, message): writes a message to `pseudo`
+            - write_all(message): writes a message to all other clients
+            - close(): closes the associated socket, then call `:func:on_connection_close`
     
     Attributes:
     -----------
