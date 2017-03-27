@@ -4,6 +4,77 @@ import select
 import threading
 import logging
 
+class Connection():
+    '''
+    Represents a connection with a server's client.
+    '''
+
+    def on_connection_started(self):
+        """
+        Called by the server after the initialization of the connection.
+        """
+    
+    def on_connection_closed(self):
+        """
+        Called by the server after the closure of the connection's socket. 
+        """
+    
+    def on_connection_failed(self):
+        """
+        """
+        
+    def on_connection_lost(self):
+        """
+        Called by the server when the connection with the client is closed prematurely.
+        """
+        
+    def on_data_received(self, data):
+        """
+        Called by the server when data is received from the client.
+        
+        Daughters of `Connection` must implement this method in order to handle client's request.
+        """
+        raise NotImplementedError
+    
+class Protocol:
+    """
+    Represents a global communication protocol.
+    
+    A protocol is like a `:class:Connection` factory, since its role is to create
+    a new one for each client. 
+    """
+    
+    def create_new_connection(self):
+        raise NotImplementedError
+    
+    def allows_to_send(self, sender, receiver, message):
+        """
+        Returns whether the protocol allows `sender` to send `message` to `receiver`.
+        
+        Arguments:
+        ----------
+            sender (Connection): the connection of the client that wants to send a message
+            receiver (Connection): the connection of the recipient
+            message (str): the message to send
+        """
+        return True
+
+    def get_connection(self, key):
+        """
+        Returns the connection associated with `key`, 
+        which is likely to be the pseudo of the client.
+        
+        Arguments:
+            key (str): the key that identify the connection
+        """
+        raise NotImplementedError
+    
+    def __getitem__(self, key):
+        """
+        A shortcut for `:func:get_connection()`.
+        """
+        return self.get_connection(key)
+
 class TcpServer():
     """
     
@@ -141,7 +212,6 @@ class TcpServer():
         connection.close = lambda: self._close_socket(client_socket)
         
         self._connection_per_socket[client_socket] = connection
-        self._protocol.on_new_connection_completed(connection)
         
         connection.on_connection_started()
         
