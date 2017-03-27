@@ -384,14 +384,14 @@ III - Command details
    
       3.b REPLY_FILE command
       
-         Command: ACCEPT_FILE
-         Arguments: <request_id> <file_sender> YES|NO [<port>]
+         Command: REPLY_FILE
+         Arguments: <request_id> YES|NO [<port>]
          
          This command is aimed to reply to a ASK_FILE request.
          
-         If the client accepts to receive the file from <file_sender>,
-         he must respond "YES", or "NO" otherwise. The case is not
-         relevant.
+         If the client accepts to receive the file identified by 
+         <request_id>, he must respond "YES", or "NO" otherwise. The 
+         case is not relevant.
        
          If the answer is "YES", then the sender must start an UDP
          connection with the recipient. The ip address of the recipient
