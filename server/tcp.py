@@ -252,5 +252,5 @@ class TcpServer():
                 self._close_socket(client_socket)
 
         except:
-            self._close_socket(client_socket)
+            self._close_socket(client_socket, False)
             raise

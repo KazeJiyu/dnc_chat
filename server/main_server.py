@@ -5,6 +5,9 @@ import sys
 from typing import Dict
 
 # Local imports
+from server.tcp import TcpServer
+from server.dnc import DncProtocol
+
 def setup_logger(set_verbose, log_file):
     class OneOf():
         
@@ -96,6 +99,6 @@ if __name__ == '__main__':
 
     logging.info("Starting server")
 
-    # ... Runs DNC Server
+    TcpServer(DncProtocol()).run_forever()
     
     logging.info("Server is closed")
