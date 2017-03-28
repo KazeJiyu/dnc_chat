@@ -70,11 +70,10 @@ def whisper(connection, args):
 
     dest = args[0]
     
-    abort_if(lambda: not connection in connection._protocol[dest].connection.private, "207 ERR_WHISPERNOTALLOWED")
-    
-    message = " ".join(args[1:])
-    
     try:
+        abort_if(lambda: not connection in connection._protocol[dest].connection.private, "207 ERR_WHISPERNOTALLOWED")
+        message = " ".join(args[1:])
+
         connection.write_to(dest, ":" + connection.client.pseudo + " WHISPER " + message)
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
