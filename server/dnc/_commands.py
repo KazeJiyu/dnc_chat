@@ -35,6 +35,9 @@ def connect(connection, args):
     connection.status = ConnectionStatus.CONNECTED    
     connection.client = Client(pseudo, connection)
     connection._protocol.clients[pseudo] = connection.client
+    
+    connection.write_all(f":{pseudo} CONNECT")
+    
     return "100 RPL_DONE"
 
 @CommandDispatcher.register_cmd
