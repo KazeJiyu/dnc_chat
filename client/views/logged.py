@@ -59,11 +59,33 @@ def cmd_stop_whisper(view, sender, content):
 def cmd_ask_file(view, sender, content):
     accepter = QPushButton("Accepter")
     ignorer = QPushButton("Ignorer")
-    accepter.clicked.connect(lambda: view.signal_handle_file.emit("YES", sender, content.split()[0]))
+    accepter.clicked.connect(lambda: view.signal_handle_file.emit("YES", content.split()[0]))
     ignorer.clicked.connect(lambda: view.signal_handle_file.emit("NO", content.split()[0]))
     message = f"{sender} désire vous envoyer un fichier nommé {content.split()[2]} de {content.split()[1]} bytes. " \
            f"Acceptez-vous ?"
-    return QListWidgetItem(message)
+
+    # create a new widget to display the message and the buttons at once
+    widgetLayout = QHBoxLayout()
+    widgetLayout.addWidget(QLabel(message))
+    widgetLayout.addWidget(accepter)
+    widgetLayout.addWidget(ignorer)
+    widgetLayout.addStretch()
+    widgetLayout.setSizeConstraint(QLayout.SetFixedSize)
+
+    widget = QWidget()
+    widget.setLayout(widgetLayout)
+
+    item = QListWidgetItem()
+    item.setSizeHint(widget.sizeHint())
+    return item, widget
+
+def cmd_reply_file(view, sender, content):
+    if content.split()[0] == "YES":
+        port = content.split()[1]
+        ip = content.split()[0]
+        print(f"{sender} listening ; port {port}, ip : {ip}")
+        return QListWidgetItem(f"{sender} a accepté votre demande d'envoi de fichier !")
+    return QListWidgetItem(f"{sender} a refusé votre demande d'envoi de fichier.")
 
 
 class Logged(QWidget, Ui_Logged):
@@ -92,7 +114,8 @@ class Logged(QWidget, Ui_Logged):
             "REPLY_WHISPER": cmd_reply_whisper,
             "WHISPER": cmd_whisper,
             "STOP_WHISPER": cmd_stop_whisper,
-            "ASK_FILE": cmd_ask_file
+            "ASK_FILE": cmd_ask_file,
+            "REPLY_FILE": cmd_reply_file
         }
 
 
@@ -123,6 +146,7 @@ class Logged(QWidget, Ui_Logged):
     def handle_whisper(self, reply, sender):
         self.signal_msg.emit(f"REPLY_WHISPER {sender} {reply}", self.signal_handle_response)
 
+    @QtCore.pyqtSlot(str, str)
     def handle_file(self, reply, request_id):
         if reply == "YES":
             port = 8432  # open a udp connection

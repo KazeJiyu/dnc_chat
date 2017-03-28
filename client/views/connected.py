@@ -95,7 +95,7 @@ class Connected(QWidget, Ui_Connected):
                 filename =basename(f.name)
                 print(f" filename : {filename}")
                 # data = f.read()
-                statinfo = os.stat(f'{filename}')
+                statinfo = os.stat(f'{f.name}')
                 print(f"size of data to {button.objectName()[2:]}: {statinfo.st_size}")
                 self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", self.signal_handle_file)
 
