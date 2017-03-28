@@ -438,6 +438,12 @@ III - Command details
             it cannot start by an "at" symbol (@).
             
             Moreover, the name cannot contain a comma (,).
+            
+            Finally, since the character space ( ) is used to separate
+            arguments, please notice that a pseudonym cannot contain
+            one. Hence, if several arguments are specified for the NICK
+            command, only the first one will be used as the new
+            pseudonym. 
          
          Possible answers:
          
@@ -446,10 +452,10 @@ III - Command details
             
          Examples:
          
-            NICK S~           ; client "Sapin" asks to be renamed as 
-                                "S~"
+            NICK Sb Arf       ; client "Sapin" asks to be renamed as 
+                                "Sb"
             100 RPL_DONE      ; response from the server
-            :Sapin NICK S~    ; received by other clients
+            :Sapin NICK Sb    ; received by other clients
       
       4.b AWAY command
       
