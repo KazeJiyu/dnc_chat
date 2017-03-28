@@ -49,7 +49,10 @@ Table of Contents
 	      4.c RE command................................................
 	   5. Operations on server..........................................
 	      5.a NAMES command.............................................
-	IV - Responses......................................................
+	IV - Error handling.................................................
+	   1. Server error..................................................
+	   2. Client disconnection..........................................
+	V - Responses.......................................................
 	   1. Status codes..................................................
 	   2. Error messages................................................
 	   3. Command replies...............................................
@@ -514,8 +517,25 @@ III - Command details
             LIST                    ; the client asks others' name
             101 RPL_NAMES jack joe  ; jack and joe are connected 
             
+            
+IV - Error handling
+
+   1. Server error
+   
+      If an internal error, which means an error that has not be caused
+      by the client (out of memory, deadlocks, etc.), occurs while
+      executing a client's request and makes the server unable to 
+      complete processing, then the server must reply 
+      "ERR_INTERNALERROR".
+   
+   2. Client disconnection
+   
+      If a client sessions ends abruptly, the server must executes a
+      QUIT command, which means send :<pseudo> QUIT to all other
+      connected clients. 
+            
       
-IV - Responses
+V - Responses
 
    1. Status codes
    
@@ -551,7 +571,7 @@ IV - Responses
       | 207  | ERR_WHISPERNOTALLOWED | Whispering is not allowed      |
       | 208  | ERR_BADARGUMENT       | The arguments are not conformed|
       | 298  | ERR_MALFORMEDREQUEST  | Request could not be recognized|
-      [ 299  | ERR_INTERNALERRO      | An internal error occurred     |
+      [ 299  | ERR_INTERNALERROR     | An internal error occurred     |
       +------+-----------------------+--------------------------------+
    
    3. Command replies
