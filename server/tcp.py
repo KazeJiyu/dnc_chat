@@ -90,6 +90,7 @@ class TcpServer():
         The process of requests is delegated to the given protocol.
     
         The connections created are filled with the following methods:
+            - ip() : returns the client's ip
             - write(str): writes a message to the connection's client
             - write_to(pseudo, message): writes a message to `pseudo`
             - write_all(message): writes a message to all other clients
@@ -168,7 +169,7 @@ class TcpServer():
             except KeyboardInterrupt:
                 logging.info("Closing...")
                 self._is_over.set()
-            except Exception as e:
+            except Exception:
                 logging.exception("")
                 raise
             finally:
@@ -224,6 +225,7 @@ class TcpServer():
         
         # create the new connection
         connection = self._protocol.create_new_connection()
+        connection.ip = lambda: server_socket.getsockname()[0]
         connection.write = lambda message: client_socket.send(message.encode())
         connection.write_to = lambda pseudo, message: self._protocol[pseudo].connection.write(message)
         connection.write_all = lambda message: self._broadcast(client_socket, message.encode())

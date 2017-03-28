@@ -4,7 +4,6 @@
 from dnc._data import ConnectionStatus, Client
 from utils.errors import abort_if
 from utils.patterns import Dispatcher
-import logging
 
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']
@@ -52,7 +51,7 @@ def quit(connection, args):  # @ReservedAssignment
 @CommandDispatcher.register_cmd
 def message(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "202 ERR_BADSTATUS")
     abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
         
     if args[0].startswith('!'):                
@@ -83,13 +82,13 @@ def whisper(connection, args):
 @CommandDispatcher.register_cmd
 def ask_whisper(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "202 ERR_BADSTATUS")
     abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
     
     dest = args[0]
     
     try:
-        connection.write_to(dest, ":" + str(connection.client.pseudo) + " ASK_WHISPER")
+        connection.write_to(dest, ":" + connection.client.pseudo + " ASK_WHISPER")
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     
@@ -98,7 +97,7 @@ def ask_whisper(connection, args):
 @CommandDispatcher.register_cmd
 def reply_whisper(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "202 ERR_BADSTATUS")
     abort_if(lambda: len(args) < 2, "203 ERR_NOTENOUGHARGS")
     
     dest = args[0]
@@ -119,7 +118,7 @@ def reply_whisper(connection, args):
 @CommandDispatcher.register_cmd
 def stop_whisper(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "202 ERR_BADSTATUS")
     abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
     
     dest = args[0]
@@ -137,17 +136,51 @@ def stop_whisper(connection, args):
     return "100 RPL_DONE"
 
 @CommandDispatcher.register_cmd
-def file(connection, args):
+def ask_file(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
     abort_if(lambda: len(args) < 3, "203 ERR_NOTENOUGHARGS")
     
-    dest, file, size = args[0], args[1], args[2]
+    dest, size, file = args[0], args[1], args[2]
+    file_id = connection._protocol.generate_file_id(file)
     
     try:
-        connection.write_to(dest, ":" + connection.client.pseudo + " FILE " + file + " " + size)
+        connection.write_to(dest, f":{connection.client.pseudo} ASK_FILE {file_id} {size} {file}")
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     
+    connection._protocol.sender_per_file_request[file_id] = connection
+    
+    return f"102 RPL_FILE {file_id}"
+
+@CommandDispatcher.register_cmd
+def reply_file(connection, args):
+    abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
+    abort_if(lambda: len(args) < 2, "203 ERR_NOTENOUGHARGS")
+    
+    file_id, answer = args[0], args[1].lower()
+    
+    abort_if(lambda: file_id not in connection._protocol.sender_per_file_request, "209 ERR_FILEIDNOTEXIST")
+    
+    file_sender = connection._protocol.sender_per_file_request[file_id]
+    
+    if answer != "no" and answer != "yes":
+        return "208 ERR_BADARGUMENT"
+
+    if answer == "no":
+        file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} NO")
+    
+    else:
+        abort_if(lambda: len(args) < 3, "203 ERR_NOTENOUGHARGS")
+    
+        port = args[2]
+        ip = file_sender.ip()
+    
+        try:
+            file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} {answer} {port} {ip}")
+        except KeyError:
+            return "204 ERR_NICKNAMENOTEXIST"
+    
+    del connection._protocol.sender_per_file_request[file_id]
     return "100 RPL_DONE"
 
 @CommandDispatcher.register_cmd

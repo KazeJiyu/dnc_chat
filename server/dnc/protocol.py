@@ -1,5 +1,6 @@
 # Standard imports
 import logging
+from threading import Lock
 
 # Local imports
 from dnc._commands import CommandDispatcher
@@ -53,6 +54,16 @@ class DncProtocol(Protocol):
     def __init__(self):
         self.clients = Clients()
         self.commands = CommandDispatcher()
+        
+        self.lock = Lock()
+        self.file_id = 0
+        self.sender_per_file_request = {}
+        
+    def generate_file_id(self, file_name):
+        with self.lock:
+            self.file_id += 1
+            
+        return str(self.file_id)
     
     def create_new_connection(self):
         return _DncConnection(self)
