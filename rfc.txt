@@ -410,7 +410,8 @@ III - Command details
          Possible answers:
          
             ERR_NOTCONNECTED   ERR_NICKNAMENOTEXIST
-            ERR_NOTENOUGHARGS
+            ERR_NOTENOUGHARGS  ERR_BADARGUMENT
+            ERR_FILEIDNOTEXIST
             
          Examples:
          
@@ -514,7 +515,7 @@ III - Command details
             
          Examples:
          
-            LIST                    ; the client asks others' name
+            NAMES                   ; the client asks clients' name
             101 RPL_NAMES jack joe  ; jack and joe are connected 
             
             
@@ -570,6 +571,7 @@ V - Responses
       | 206  | ERR_INVALIDNICKNAME   | Requested nick is not valid    |
       | 207  | ERR_WHISPERNOTALLOWED | Whispering is not allowed      |
       | 208  | ERR_BADARGUMENT       | The arguments are not conformed|
+      | 209  | ERR_FILEIDNOTEXIST    | The specified id does not exist|
       | 298  | ERR_MALFORMEDREQUEST  | Request could not be recognized|
       [ 299  | ERR_INTERNALERROR     | An internal error occurred     |
       +------+-----------------------+--------------------------------+
