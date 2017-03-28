@@ -73,7 +73,9 @@ class DncProtocol(Protocol):
         return self.clients[key]
     
     def allows_to_send(self, sender, receiver, message):
-        return sender.status is not ConnectionStatus.NOT_CONNECTED and sender not in receiver.ignored 
+        return receiver.client is not None \
+           and sender.status is not ConnectionStatus.NOT_CONNECTED \
+           and sender not in receiver.ignored 
     
     def add_client(self, login):
         self.clients[login] = Client(login)
