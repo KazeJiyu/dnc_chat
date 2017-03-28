@@ -3,7 +3,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton
 
-from projet.widgets.logged import Ui_Logged
+from client.widgets.logged import Ui_Logged
 
 def cmd_message(view, sender, content):
     return QListWidgetItem(f"[{sender}] {content}")
@@ -21,7 +21,7 @@ def cmd_ask_whisper(view, sender, content):
     accepter.clicked.connect(lambda: view.signal_handle_whisper.emit("YES", sender))
     ignorer.clicked.connect(lambda: view.signal_handle_whisper.emit("NO", sender))
     message = f"{sender} désire lancer une conversation privée. Acceptez-vous ?"
-    return QListWidgetItem(message, accepter, ignorer)
+    return QListWidgetItem(message)
 
 def cmd_reply_whisper(view, sender, content):
     print("in cmd_reply_whisper")
@@ -39,21 +39,20 @@ def cmd_stop_whisper(view, sender, content):
     return QListWidgetItem(f"{sender} a mis fin à votre conversation privée.")
 
 def cmd_ask_file(view, sender, content):
-    print("in cmd_ask_file")
-    view.yes.setText(f"Accepter le fichier de ")
-    view.no.setText(f"Ignorer le fichier")
-    view.yes.show()
-    view.no.show()
-    view.file_requests_received[sender] = content.split()[0]
+    accepter = QPushButton("Accepter")
+    ignorer = QPushButton("Ignorer")
+    accepter.clicked.connect(lambda: view.signal_handle_file.emit("YES", sender, content.split()[0]))
+    ignorer.clicked.connect(lambda: view.signal_handle_file.emit("NO", content.split()[0]))
     message = f"{sender} désire vous envoyer un fichier nommé {content.split()[2]} de {content.split()[1]} bytes. " \
            f"Acceptez-vous ?"
-    return QListWidgetItem()
+    return QListWidgetItem(message)
 
 
 class Logged(QWidget, Ui_Logged):
     signal_msg = pyqtSignal(str, object)  # document all signals
     signal_handle_response = pyqtSignal(str)
-    signal_handle_whisper = pyqtSignal(str, str)
+    signal_handle_whisper = pyqtSignal(str, str)  # yes/no, sender
+    signal_handle_file = pyqtSignal(str, str)  # yes/no, request id
 
     def __init__(self, view, parent=None):
         QWidget.__init__(self, parent)
@@ -63,9 +62,9 @@ class Logged(QWidget, Ui_Logged):
         self.signal_msg.connect(self.view.send_request)
         self.signal_handle_response.connect(self.handle_response)
         self.signal_handle_whisper.connect(self.handle_whisper)
+        self.signal_handle_file.connect(self.handle_file)
         self.private_conversations = []
         self.my_file_requests = []
-        self.file_requests_received = {}
         self.commands = {
             "MESSAGE": cmd_message,
             "NICK": cmd_nick,
@@ -101,13 +100,12 @@ class Logged(QWidget, Ui_Logged):
     def handle_whisper(self, reply, sender):
         self.signal_msg.emit(f"REPLY_WHISPER {sender} {reply}", self.signal_handle_response)
 
-    @QtCore.pyqtSlot()
-    def on_no_clicked(self):
-        dude = self.no.text().split()[1] # .split() = ['ignorer', sender]
-        self.yes.hide()
-        self.no.hide()
-        self.signal_msg.emit(f"REPLY_WHISPER {dude} NO", self.signal_handle_response)
-        self.button.clicked.connect()
+    def handle_file(self, reply, request_id):
+        if reply == "YES":
+            port = 8432  # open a udp connection
+            self.signal_msg.emit(f"REPLY_FILE {request_id} {reply} {port}", self.signal_handle_response)
+        else:
+            self.signal_msg.emit(f"REPLY_FILE {request_id} {reply}", self.signal_handle_response)
 
     @QtCore.pyqtSlot()
     def on_send_msg_clicked(self):

@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton, QFileDialog
 
-from projet.widgets.connected import Ui_Connected
+from client.widgets.connected import Ui_Connected
 
 
 class Connected(QWidget, Ui_Connected):

@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from projet.controllers.change_view import MainView
+from client.controllers.change_view import MainView
 
 #fichier principal, à exécuter
 class App():

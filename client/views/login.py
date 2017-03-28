@@ -2,7 +2,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
-from projet.widgets.login import Ui_Login
+from client.widgets.login import Ui_Login
 
 
 class Login(QWidget, Ui_Login):

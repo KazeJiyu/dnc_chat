@@ -4,10 +4,10 @@ from threading import Thread, Event
 from PyQt5 import QtCore
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QApplication, QStackedWidget, QButtonGroup, QAbstractButton
-from projet.views.login import Login
-from projet.views.logged import Logged
-from projet.views.connected import Connected
-from projet.widgets.main_window import Ui_MainWindow
+from client.views.login import Login
+from client.views.logged import Logged
+from client.views.connected import Connected
+from client.widgets.main_window import Ui_MainWindow
 from PyQt5.QtCore import pyqtSignal
 
 main_program_is_over = Event()
