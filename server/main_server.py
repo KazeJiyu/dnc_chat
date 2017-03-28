@@ -2,13 +2,13 @@
 import argparse
 import logging
 import sys
+import os.path
 from typing import Dict
 
+# Local imports
 from dnc.protocol import DncProtocol
 from tcp import TcpServer
 
-
-# Local imports
 def setup_logger(set_verbose, log_file):
     class OneOf():
         
@@ -89,11 +89,21 @@ def parse_arguments() -> Dict[str,object]:
     
     return args
 
+def print_rfc_content():
+    try:
+        with open("../rfc.txt") as rfc:
+            for line in rfc:
+                print(line, end='')
+                
+    except:
+        print(" Sorry, unable to found RFC content. Please check:\n")
+        print("      Please check github.com/KazeJiyu/dnc_chat/blob/master/rfc.txt")
+
 if __name__ == '__main__':
     args = parse_arguments()
     
     if args['rfc']:
-        print("RFC content")
+        print_rfc_content()
         exit(0)
     
     port = args['port']
