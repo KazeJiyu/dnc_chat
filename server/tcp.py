@@ -201,11 +201,12 @@ class TcpServer():
         socket.close()
         
         connection = self._connection_per_socket[socket]
-        logging.info("socket closed for " + str(connection.client))
         
         if connection_lost:
+            logging.info(f"CONNECTION LOST: {connection.client}")
             connection.on_connection_lost()
         else:
+            logging.info(f"CONNECTION CLOSED: {connection.client}")
             connection.on_connection_closed()
 
         self._opened_sockets.remove(socket)
@@ -235,7 +236,7 @@ class TcpServer():
         
         connection.on_connection_started()
         
-        logging.info("New client : " + str(client_addr))
+        logging.info(f"NEW CONNECTION: {client_addr}")
         
     def _handle_existing_connection(self, client_socket):
         """
@@ -257,5 +258,4 @@ class TcpServer():
                 self._close_socket(client_socket)
 
         except ConnectionResetError:
-            logging.error(f"Connection reset by {connection.client.pseudo}")
             self._close_socket(client_socket, True)

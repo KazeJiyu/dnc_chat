@@ -113,8 +113,8 @@ def reply_whisper(connection, args):
     else:
         if answer.lower() == "yes":
             dest_connection = connection._protocol[dest].connection
-            connection.private.append(dest_connection)
-            dest_connection.private.append(connection)
+            connection.private.add(dest_connection)
+            dest_connection.private.add(connection)
     
     return "100 RPL_DONE"
 

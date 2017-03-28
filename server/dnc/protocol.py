@@ -16,20 +16,28 @@ class _DncConnection(Connection):
         protocol (Protocol): the DNC protocol
         status (ConnectionStatus): the status of the client
         client (User): store data about the client
+        private (set[Connection]): the connection with which a private conversation has been started
     """
 
     def __init__(self, protocol):
         self._protocol = protocol
         self.status = ConnectionStatus.NOT_CONNECTED
         self.client = None
-        self.ignored = []
-        self.private = []
+        self.private = set()
         
     def __eq__(self, rhs):
         return self.client == rhs.client
+    
+    def __hash__(self):
+        return hash(self.client.pseudo) if self.client else "None" 
         
     def on_data_received(self, data):
-        logging.info(f"from {self.client} received: {data}")
+        
+        if self.client:
+            logging.info(f"FROM {self.ip()} - {self.client.pseudo}: {data}")
+        else:
+            logging.info(f"FROM {self.ip()}: {data}")
+        
         try:
             response = self._protocol.commands.react(data, self)
         except ValueError as e:
@@ -43,11 +51,17 @@ class _DncConnection(Connection):
             self.write(response)
         
     def on_connection_closed(self):
-        if self.client is not None:
-            self._protocol.clients -= self.client
+        if self.client is None:
+            return
+            
+        self._protocol.clients -= self.client
+        
+        for friend in self.private:
+            friend.private.remove(self)
             
     def on_connection_lost(self):
         self.write_all(f":{self.client.pseudo} QUIT")
+        self.on_connection_closed()
         
 class DncProtocol(Protocol):
     
@@ -74,8 +88,7 @@ class DncProtocol(Protocol):
     
     def allows_to_send(self, sender, receiver, message):
         return receiver.client is not None \
-           and sender.status is not ConnectionStatus.NOT_CONNECTED \
-           and sender not in receiver.ignored 
+           and sender.status is not ConnectionStatus.NOT_CONNECTED 
     
     def add_client(self, login):
         self.clients[login] = Client(login)
