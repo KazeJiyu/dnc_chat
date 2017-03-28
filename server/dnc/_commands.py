@@ -105,7 +105,7 @@ def reply_whisper(connection, args):
     answer = str(args[1]).strip()
     
     try:
-        connection.write_to(dest, ":" + str(connection.client.pseudo) + " REPLY_WHISPER " + str(answer))
+        connection.write_to(dest, ":" + connection.client.pseudo + " REPLY_WHISPER " + str(answer))
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     else:
@@ -129,6 +129,8 @@ def stop_whisper(connection, args):
         dest_connection.private.remove(connection)
         
         connection.private.remove(dest_connection)
+        
+        dest_connection.write(":" + connection.client.pseudo + " STOP_WHISPER")
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     
