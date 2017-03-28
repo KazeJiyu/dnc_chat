@@ -531,8 +531,8 @@ IV - Error handling
    
    2. Client disconnection
    
-      If a client sessions ends abruptly, the server must executes a
-      QUIT command, which means send :<pseudo> QUIT to all other
+      If a client sessions ends abruptly, the server must execute a
+      QUIT command, which means sending :<pseudo> QUIT to all other
       connected clients. 
             
       
