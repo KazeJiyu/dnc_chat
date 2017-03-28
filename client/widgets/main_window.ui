@@ -15,20 +15,9 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../img/icon.png</normaloff>../img/icon.png</iconset>
+    <normaloff>../../dnc_chat/client/img/icon.png</normaloff>../../dnc_chat/client/img/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="verticalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>160</y>
-      <width>621</width>
-      <height>691</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </widget>
    <widget class="QLabel" name="msg_accueil">
     <property name="geometry">
      <rect>
@@ -121,6 +110,7 @@
     <addaction name="separator"/>
     <addaction name="actionVoir_les_membres_connect_s"/>
     <addaction name="actionLancer_une_conversation_priv_e"/>
+    <addaction name="actionSupprimer_une_conversation_priv_e"/>
    </widget>
    <addaction name="menuMon_compte"/>
    <addaction name="menuConversation"/>
@@ -157,6 +147,16 @@
   <action name="actionLancer_une_conversation_priv_e">
    <property name="text">
     <string>Lancer une conversation privée</string>
+   </property>
+  </action>
+  <action name="actionG_rer_les_membres_muets">
+   <property name="text">
+    <string>Gérer les membres muets</string>
+   </property>
+  </action>
+  <action name="actionSupprimer_une_conversation_priv_e">
+   <property name="text">
+    <string>Supprimer une conversation privée</string>
    </property>
   </action>
  </widget>

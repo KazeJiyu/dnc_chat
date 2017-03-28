@@ -9,7 +9,12 @@ class App():
         self.view = MainView()
         self.view.show()
 
+def my_excepthook(type, value, tback):
+    sys.__excepthook__(type, value, tback)
+
 if __name__ == '__main__':
+    sys.excepthook = my_excepthook
+
     app = QApplication(sys.argv)
     win = App()
     ret = app.exec_()

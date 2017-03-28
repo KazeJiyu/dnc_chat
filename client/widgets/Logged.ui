@@ -43,7 +43,7 @@ p, li { white-space: pre-wrap; }
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>0</x>
      <y>490</y>
      <width>171</width>
      <height>19</height>
@@ -66,7 +66,33 @@ p, li { white-space: pre-wrap; }
     <item>
      <widget class="QPushButton" name="send_msg">
       <property name="text">
-       <string>Envoyer</string>
+       <string>Envoyer à tous</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>154</x>
+     <y>480</y>
+     <width>451</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="layout_yes_no">
+    <item>
+     <widget class="QPushButton" name="yes">
+      <property name="text">
+       <string>Oui</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="no">
+      <property name="text">
+       <string>Non</string>
       </property>
      </widget>
     </item>
