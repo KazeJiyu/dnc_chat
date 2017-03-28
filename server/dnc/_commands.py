@@ -1,9 +1,10 @@
 # Standard modules
 
 # Custom utility functions
-from server.dnc._data import ConnectionStatus, Client
-from server.utils.errors import abort_if
-from server.utils.patterns import Dispatcher
+from dnc._data import ConnectionStatus, Client
+from utils.errors import abort_if
+from utils.patterns import Dispatcher
+import logging
 
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']
@@ -64,10 +65,13 @@ def message(connection, args):
 @CommandDispatcher.register_cmd
 def whisper(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "202 ERR_BADSTATUS")
     abort_if(lambda: len(args) < 2, "203 ERR_NOTENOUGHARGS")
-    
+
     dest = args[0]
+    
+    abort_if(lambda: not connection in connection._protocol[dest].connection.private, "207 ERR_WHISPERNOTALLOWED")
+    
     message = " ".join(args[1:])
     
     try:
@@ -81,12 +85,12 @@ def whisper(connection, args):
 def ask_whisper(connection, args):
     abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
     abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
-    abort_if(lambda: len(args) < 2, "203 ERR_NOTENOUGHARGS")
+    abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
     
     dest = args[0]
     
     try:
-        connection.write_to(dest, ":" + connection.client.pseudo + " ASK_WHISPER")
+        connection.write_to(dest, ":" + str(connection.client.pseudo) + " ASK_WHISPER")
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     
@@ -99,10 +103,33 @@ def reply_whisper(connection, args):
     abort_if(lambda: len(args) < 2, "203 ERR_NOTENOUGHARGS")
     
     dest = args[0]
-    message = " ".join(args[1:])
+    answer = str(args[1]).strip()
     
     try:
-        connection.write_to(dest, ":" + connection.client.pseudo + " REPLY_WHISPER " + message)
+        connection.write_to(dest, ":" + str(connection.client.pseudo) + " REPLY_WHISPER " + str(answer))
+    except KeyError:
+        return "204 ERR_NICKNAMENOTEXIST"
+    else:
+        if answer.lower() == "yes":
+            dest_connection = connection._protocol[dest].connection
+            connection.private.append(dest_connection)
+            dest_connection.private.append(connection)
+    
+    return "100 RPL_DONE"
+
+@CommandDispatcher.register_cmd
+def stop_whisper(connection, args):
+    abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
+    abort_if(lambda: connection.status == ConnectionStatus.AWAY, "-202 ERR_BADSTATUS")
+    abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
+    
+    dest = args[0]
+    
+    try:
+        dest_connection = connection._protocol[dest].connection
+        dest_connection.private.remove(connection)
+        
+        connection.private.remove(dest_connection)
     except KeyError:
         return "204 ERR_NICKNAMENOTEXIST"
     

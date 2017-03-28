@@ -1,5 +1,5 @@
 from enum import Enum
-from server.utils.errors import abort_if
+from utils.errors import abort_if
 
 class ConnectionStatus(Enum):
     AWAY = 'away'

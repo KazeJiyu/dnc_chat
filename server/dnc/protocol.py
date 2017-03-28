@@ -2,9 +2,9 @@
 import logging
 
 # Local imports
-from server.dnc._commands import CommandDispatcher
-from server.dnc._data import ConnectionStatus, Clients, Client
-from server.tcp import Connection, Protocol
+from dnc._commands import CommandDispatcher
+from dnc._data import ConnectionStatus, Clients, Client
+from tcp import Connection, Protocol
 
 class _DncConnection(Connection):
     """
@@ -22,6 +22,10 @@ class _DncConnection(Connection):
         self.status = ConnectionStatus.NOT_CONNECTED
         self.client = None
         self.ignored = []
+        self.private = []
+        
+    def __eq__(self, rhs):
+        return self.client == rhs.client
         
     def on_data_received(self, data):
         logging.info(f"from {self.client} received: {data}")

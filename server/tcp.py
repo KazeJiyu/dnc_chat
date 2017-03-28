@@ -85,7 +85,7 @@ class TcpServer():
     """
     A server that can handle TCP requests.
     
-    Request process:
+    Request processing:
     -----------------
         The process of requests is delegated to the given protocol.
     
@@ -170,6 +170,7 @@ class TcpServer():
                 self._is_over.set()
             except Exception as e:
                 logging.error(f"an error occured: {e}")
+                raise
             finally:
                 for sock in self._opened_sockets:
                     sock.close()
@@ -223,9 +224,9 @@ class TcpServer():
         
         # create the new connection
         connection = self._protocol.create_new_connection()
-        connection.write = lambda message: client_socket.send(message.encode())
-        connection.write_to = lambda pseudo, message: self._protocol[pseudo].connection.write(message.encode())
-        connection.write_all = lambda message: self._broadcast(client_socket, message.encode())
+        connection.write = lambda message: client_socket.send(str(message).encode())
+        connection.write_to = lambda pseudo, message: self._protocol[pseudo].connection.write(str(message).encode())
+        connection.write_all = lambda message: self._broadcast(client_socket, str(message).encode())
         connection.close = lambda: self._close_socket(client_socket)
         
         self._connection_per_socket[client_socket] = connection

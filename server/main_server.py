@@ -4,10 +4,11 @@ import logging
 import sys
 from typing import Dict
 
-# Local imports
-from server.tcp import TcpServer
-from server.dnc import DncProtocol
+from dnc.protocol import DncProtocol
+from tcp import TcpServer
 
+
+# Local imports
 def setup_logger(set_verbose, log_file):
     class OneOf():
         
