@@ -169,7 +169,7 @@ class TcpServer():
                 logging.info("Closing...")
                 self._is_over.set()
             except Exception as e:
-                logging.error(f"an error occured: {e}")
+                logging.exception("")
                 raise
             finally:
                 for sock in self._opened_sockets:
@@ -243,15 +243,17 @@ class TcpServer():
         This method reads the content of the socket, and then lets the associated connection
         deal with it.
         """
+        connection = self._connection_per_socket[client_socket]
+        
         try:
-            request = client_socket.recv(2048).decode()
+            request = client_socket.recv(2048)
+            request = request.decode()
             
             if request:
-                client = self._connection_per_socket[client_socket]
-                client.on_data_received(request)
+                connection.on_data_received(request)
             else:
                 self._close_socket(client_socket)
 
-        except:
-            self._close_socket(client_socket, False)
-            raise
+        except ConnectionResetError:
+            logging.error(f"Connection reset by {connection.client.pseudo}")
+            self._close_socket(client_socket, True)

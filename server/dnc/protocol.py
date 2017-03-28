@@ -44,6 +44,9 @@ class _DncConnection(Connection):
     def on_connection_closed(self):
         if self.client is not None:
             self._protocol.clients -= self.client
+            
+    def on_connection_lost(self):
+        self.write_all(f":{self.client.pseudo} QUIT")
         
 class DncProtocol(Protocol):
     
