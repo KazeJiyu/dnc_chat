@@ -1,13 +1,15 @@
 # System imports
 import argparse
+import configparser
 import logging
 import sys
-import os.path
+import os
 from typing import Dict
 
 # Local imports
 from dnc.protocol import DncProtocol
 from tcp import TcpServer
+from utils.errors import print_err
 
 def setup_logger(set_verbose, log_file):
     class OneOf():
@@ -76,19 +78,38 @@ def parse_arguments() -> Dict[str,object]:
     parser.add_argument('-c', '--conf', nargs='?',
                         help="Specify a .ini file that contains server's configuration.\n"
                              "See below for accepted sections and variables (replace <..> by real values):\n"
-                             "[kernel]\n"
+                             "[network]\n"
                              "port = <port_number>\n\n"
-                             "[user]\n"
-                             "pseudo=<pseudo>\n\n"
                              "[log]\n"
                              "verbose = <True/False>\n"
                              "log_file = <file_name>")
 
     args = vars(parser.parse_args())    
+    
+    if args['conf']:
+        tailor_args_to_config_file(args['conf'], args)
+
     setup_logger(args['verbose'], args['log_file'])
     
     return args
 
+def tailor_args_to_config_file(config_file, args):
+    if not os.path.exists(config_file):
+        raise ValueError(f" The config file does not exist: {config_file}")
+        
+    parser = configparser.ConfigParser()
+    parser.read(config_file)
+    
+    if "network" in parser.sections():
+        if "port" in parser["network"]:
+            args["port"] = int(parser["network"]["port"])
+            
+    if "log" in parser.sections():
+        if "verbose" in parser["log"]:
+            args["verbose"] = True if parser["log"]["verbose"].lower() in ['yes', 'true'] else False
+        if "log_file" in parser["log"]:
+            args["log_file"] = parser["log"]["log_file"]
+        
 def print_rfc_content():
     try:
         with open("../rfc.txt") as rfc:
@@ -96,20 +117,25 @@ def print_rfc_content():
                 print(line, end='')
                 
     except:
-        print(" Sorry, unable to found RFC content. Please check:\n")
-        print("      Please check github.com/KazeJiyu/dnc_chat/blob/master/rfc.txt")
+        raise ValueError(" Sorry, unable to found RFC content. Please check:\n" +
+                         "      Please check github.com/KazeJiyu/dnc_chat/blob/master/rfc.txt")
 
 if __name__ == '__main__':
-    args = parse_arguments()
+    try:
+        args = parse_arguments()
     
-    if args['rfc']:
-        print_rfc_content()
-        exit(0)
-    
-    port = args['port']
+        if args['rfc']:
+            print_rfc_content()
+            exit(0)
+            
+    except Exception as e:
+        print_err(e)
+        
+    else:
+        port = args['port']
+        
+        logging.info("Starting server")
 
-    logging.info("Starting server")
-
-    TcpServer(DncProtocol()).run_forever()
+        TcpServer(DncProtocol()).run_forever()
     
-    logging.info("Server is closed")
+        logging.info("Server is closed")
