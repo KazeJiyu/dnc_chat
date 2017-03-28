@@ -16,6 +16,7 @@ class Login(QWidget, Ui_Login):
         self.view.menuMon_compte.setEnabled(False)
         self.view.menuConversation.setEnabled(False)
         self.signal_handle_response.connect(self.handle_response)
+        self.login.returnPressed.connect(self.on_submit_login_clicked)
 
     def on_display(self):
         pass
