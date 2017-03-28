@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout, QLayout
 
 from client.widgets.logged import Ui_Logged
 
@@ -24,7 +24,22 @@ def cmd_ask_whisper(view, sender, content):
     accepter.clicked.connect(lambda: view.signal_handle_whisper.emit("YES", sender))
     ignorer.clicked.connect(lambda: view.signal_handle_whisper.emit("NO", sender))
     message = f"{sender} désire lancer une conversation privée. Acceptez-vous ?"
-    return QListWidgetItem(message)
+    
+    # create a new widget to display the message and the buttons at once
+    widgetLayout = QHBoxLayout()
+    widgetLayout.addWidget(QLabel(message))
+    widgetLayout.addWidget(accepter)
+    widgetLayout.addWidget(ignorer)
+    widgetLayout.addStretch()
+    widgetLayout.setSizeConstraint(QLayout.SetFixedSize)
+    
+    widget = QWidget()
+    widget.setLayout(widgetLayout)  
+    
+    item = QListWidgetItem()
+    item.setSizeHint(widget.sizeHint())    
+
+    return item, widget
 
 def cmd_reply_whisper(view, sender, content):
     print("in cmd_reply_whisper")
@@ -86,6 +101,7 @@ class Logged(QWidget, Ui_Logged):
 
         if not self.messages.empty():
             new_msg = self.messages.get()
+            widget = None
             print(new_msg)
             if new_msg.startswith(':'):
                 sender = ''.join(new_msg.split()[:1]).lstrip(':')
@@ -97,10 +113,13 @@ class Logged(QWidget, Ui_Logged):
                 else:
                     return
 
-            self.conversation.addItem(item)
+            if isinstance(item, tuple):
+                self.conversation.addItem(item[0])
+                self.conversation.setItemWidget(item[0], item[1])
+            else:
+                self.conversation.addItem(item)
 
-
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot(str, str)
     def handle_whisper(self, reply, sender):
         self.signal_msg.emit(f"REPLY_WHISPER {sender} {reply}", self.signal_handle_response)
 
