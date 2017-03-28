@@ -11,6 +11,9 @@ def cmd_message(view, sender, content):
 def cmd_nick(view, sender, content):
     return QListWidgetItem(f"{sender} a changé son pseudo en {content}.")
 
+def cmd_connect(view, sender, content):
+    return QListWidgetItem(f"{sender} vient de se connecter !")
+
 def cmd_quit(view, sender, content):
     return QListWidgetItem(f"{sender} vient de quitter la conversation.")
 
@@ -68,6 +71,7 @@ class Logged(QWidget, Ui_Logged):
         self.commands = {
             "MESSAGE": cmd_message,
             "NICK": cmd_nick,
+            "CONNECT": cmd_connect,
             "QUIT": cmd_quit,
             "ASK_WHISPER": cmd_ask_whisper,
             "REPLY_WHISPER": cmd_reply_whisper,
