@@ -136,6 +136,6 @@ if __name__ == '__main__':
         
         logging.info("Starting server")
 
-        TcpServer(DncProtocol()).run_forever()
+        TcpServer(DncProtocol(), port).run_forever()
     
         logging.info("Server is closed")
