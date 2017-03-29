@@ -1,5 +1,6 @@
-import sys, socket, threading, queue
+import sys, socket, threading, queue, os
 from threading import Thread, Event
+from configparser import ConfigParser
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QTimer
@@ -24,6 +25,27 @@ class MainView(QWidget, Ui_MainWindow):
     signal_stop = pyqtSignal(str)
     signal_messages = pyqtSignal(str)
 
+    def __configure(self, config_file):
+        options = ConfigParser()
+        options.read(config_file)
+
+        if 'server' in options.sections():
+            if 'ip' in options['server']:
+                self.ip = options['server']['ip']
+            if 'port' in options['server']:
+                self.port = int(options["server"]["port"])
+
+        return options
+
+    def __persist_pseudo_at_login(self, pseudo):
+        if not self.options["session"]:
+            self.options["session"] = {}
+
+        self.options["session"]["pseudo"] = pseudo
+
+        with open("client.config", "w+") as config_file:
+            self.options.write(config_file)
+
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.setupUi(self)
@@ -31,6 +53,10 @@ class MainView(QWidget, Ui_MainWindow):
         self.ip = '127.0.0.1'
         self.port = 8123
         self.sock = None
+        self.options = {}
+
+        if os.path.exists('client.config'):
+            self.options = self.__configure('client.config')
 
         self.conversation = conversation_content
         self.stackedWidget = QStackedWidget(self.centralwidget)
@@ -39,6 +65,7 @@ class MainView(QWidget, Ui_MainWindow):
 
         self.login_view = Login(self)
         self.login_view.signal_login.connect(self.send_request)
+        self.login_view.signal_login.connect(lambda request, callback: self.__persist_pseudo_at_login(request.split()[-1]))
         self.stackedWidget.addWidget(self.login_view)
         self.signal_re.connect(self.handle_re)
         self.signal_away.connect(self.handle_away)
@@ -84,7 +111,6 @@ class MainView(QWidget, Ui_MainWindow):
         self.views[view][1].on_display()
 
     def update_label(self):
-        print("in update label")
         self.msg_accueil.setText("Messagerie instantanée")
 
     @QtCore.pyqtSlot(str, object)

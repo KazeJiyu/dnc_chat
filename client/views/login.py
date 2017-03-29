@@ -18,6 +18,9 @@ class Login(QWidget, Ui_Login):
         self.signal_handle_response.connect(self.handle_response)
         self.login.returnPressed.connect(self.on_submit_login_clicked)
 
+        if 'session' in view.options and 'pseudo' in view.options['session']:
+            self.login.setText(view.options['session']['pseudo'])
+
     def on_display(self):
         pass
 
