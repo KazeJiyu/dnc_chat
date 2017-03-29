@@ -1,3 +1,4 @@
+from socket import *
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
@@ -80,10 +81,16 @@ def cmd_ask_file(view, sender, content):
     return item, widget
 
 def cmd_reply_file(view, sender, content):
-    if content.split()[0] == "YES":
-        port = content.split()[1]
-        ip = content.split()[0]
+    if content.split()[1] == "YES":
+        port = content.split()[2]
+        ip = content.split()[3]
         print(f"{sender} listening ; port {port}, ip : {ip}")
+        request = view.my_file_requests[content.split()[0]]
+        # send the file
+        with socket(AF_INET, SOCK_DGRAM) as sock:
+            sock.sendto(request.encode(), (ip, port))
+            sock.settimeout(5)
+
         return QListWidgetItem(f"{sender} a accepté votre demande d'envoi de fichier !")
     return QListWidgetItem(f"{sender} a refusé votre demande d'envoi de fichier.")
 
@@ -104,7 +111,7 @@ class Logged(QWidget, Ui_Logged):
         self.signal_handle_whisper.connect(self.handle_whisper)
         self.signal_handle_file.connect(self.handle_file)
         self.private_conversations = []
-        self.my_file_requests = []
+        self.my_file_requests = {}
         self.commands = {
             "MESSAGE": cmd_message,
             "NICK": cmd_nick,
@@ -150,6 +157,9 @@ class Logged(QWidget, Ui_Logged):
     def handle_file(self, reply, request_id):
         if reply == "YES":
             port = 8432  # open a udp connection
+            TAILLE_TAMPON = 256
+            sock = socket(AF_INET, SOCK_DGRAM)
+            sock.bind(('', port))
             self.signal_msg.emit(f"REPLY_FILE {request_id} {reply} {port}", self.signal_handle_response)
         else:
             self.signal_msg.emit(f"REPLY_FILE {request_id} {reply}", self.signal_handle_response)

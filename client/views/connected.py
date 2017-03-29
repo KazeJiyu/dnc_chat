@@ -12,7 +12,7 @@ class Connected(QWidget, Ui_Connected):
     signal_handle_response = pyqtSignal(str)
     signal_handle_mute = pyqtSignal(str)
     signal_handle_listen = pyqtSignal(str)
-    signal_handle_file = pyqtSignal(str)
+    signal_handle_file = pyqtSignal(str, str) # filename to send, server's response
 
     def __init__(self, view, parent=None):
         QWidget.__init__(self, parent)
@@ -89,23 +89,22 @@ class Connected(QWidget, Ui_Connected):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '')
 
         if fname[0]:
-            f = open(fname[0], 'r')
-
-            with f:
-                filename =basename(f.name)
+            with open(fname[0], 'r') as f:
+                filename = basename(f.name)
                 print(f" filename : {filename}")
                 # data = f.read()
                 statinfo = os.stat(f'{f.name}')
                 print(f"size of data to {button.objectName()[2:]}: {statinfo.st_size}")
-                self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", self.signal_handle_file)
+                self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", lambda response: self.signal_handle_file.emit(f.name, response))
 
-    @QtCore.pyqtSlot(str)
-    def handle_file(self, server_response):
+    @QtCore.pyqtSlot(str, str)
+    def handle_file(self, filename, server_response):
         if not server_response.startswith('102 RPL_FILE'):
             self.view.msg_accueil.setText("Une erreur est survenue... ")
         else:
+
             self.view.msg_accueil.setText("Requête envoyée ! ")
-            self.view.logged_view.my_file_requests.append(server_response.split()[2])
+            self.view.logged_view.my_file_requests[server_response.split()[2]] = filename
             self.view.update('logged')
 
     @QtCore.pyqtSlot()
