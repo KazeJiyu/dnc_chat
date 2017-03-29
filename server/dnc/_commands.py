@@ -1,9 +1,9 @@
 # Standard modules
 
 # Custom utility functions
-from dnc._data import ConnectionStatus, Client
-from utils.errors import abort_if
-from utils.patterns import Dispatcher
+from server.dnc._data import ConnectionStatus, Client
+from server.utils.errors import abort_if
+from server.utils.patterns import Dispatcher
 
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']
@@ -113,8 +113,8 @@ def reply_whisper(connection, args):
     else:
         if answer.lower() == "yes":
             dest_connection = connection._protocol[dest].connection
-            connection.private.append(dest_connection)
-            dest_connection.private.append(connection)
+            connection.private.add(dest_connection)
+            dest_connection.private.add(connection)
     
     return "100 RPL_DONE"
 
@@ -185,40 +185,6 @@ def reply_file(connection, args):
     
     del connection._protocol.sender_per_file_request[file_id]
     return "100 RPL_DONE"
-
-@CommandDispatcher.register_cmd
-def mute(connection, args):
-    abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
-    
-    in_error = []
-    
-    for pseudo in args:
-        try:
-            to_mute = connection._protocol.clients[pseudo]
-        except KeyError:
-            in_error.append(pseudo)
-        else:
-            connection.ignored.append(to_mute.connection)
-        
-    return "100 RPL_DONE" if not in_error else "204 ERR_NICKNAMENOTEXIST " + " ".join(in_error) 
-    
-@CommandDispatcher.register_cmd
-def listen(connection, args):
-    abort_if(lambda: connection.status == ConnectionStatus.NOT_CONNECTED, "201 ERR_NOTCONNECTED")
-    abort_if(lambda: len(args) < 1, "203 ERR_NOTENOUGHARGS")
-    
-    in_error = []
-    
-    for pseudo in args:
-        try:
-            to_listen = connection._protocol.clients[pseudo]
-        except KeyError:
-            in_error.append(pseudo)
-        else:
-            connection.ignored.remove(to_listen.connection)
-        
-    return "100 RPL_DONE" if not in_error else "204 ERR_NICKNAMENOTEXIST " + " ".join(in_error) 
 
 @CommandDispatcher.register_cmd
 def names(connection, args):
