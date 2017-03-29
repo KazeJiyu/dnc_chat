@@ -5,6 +5,8 @@ from server.dnc._data import ConnectionStatus, Client
 from server.utils.errors import abort_if
 from server.utils.patterns import Dispatcher
 
+import logging
+
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']
 
@@ -182,6 +184,8 @@ def reply_file(connection, args):
     
         port = args[2]
         ip = file_sender.ip()
+        
+        logging.info(f"ip={ip}")
     
         try:
             file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} {answer} {port} {ip}")
