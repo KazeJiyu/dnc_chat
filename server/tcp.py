@@ -25,10 +25,6 @@ class Connection():
         Called by the server after the closure of the connection's socket. 
         """
     
-    def on_connection_failed(self):
-        """
-        """
-        
     def on_connection_lost(self):
         """
         Called by the server when the connection with the client is closed prematurely.
@@ -71,7 +67,7 @@ class Protocol:
         which is likely to be the pseudo of the client.
         
         Arguments:
-            key (str): the key that identify the connection
+            key (str): the key that identifies the connection
         """
         raise NotImplementedError
     
@@ -95,25 +91,24 @@ class TcpServer():
             - write_to(pseudo, message): writes a message to `pseudo`
             - write_all(message): writes a message to all other clients
             - close(): closes the associated socket, then call `:func:on_connection_close`
+            
+    Args:
+    -----
+        protocol (Protocol): the protocol that deals with clients' requests
+        port (int): the port of listening
     
     Attributes:
     -----------
         port (int): the port on which the server listens
+        protocol (Protocol): the protocol that deals with requests from clients.
         is_over (threading.Event): indicates whether the server is over.
                                    This flag is used to close sub-threads.
         opened_sockets (List[socket]): a list of sockets likely to receive incoming data
-        protocol (Protocol): the protocol that deals with requests from clients.
+        local_socket (socket): server's socket
         connection_per_socket (Map[socket,Connection])
     """
 
     def __init__(self, protocol, port=8123):
-        """
-        Arguments:
-        ----------
-        @type protocol: C{Protocol}
-        @param protocol: the _protocol charged of dealing with TCP requests 
-        @keyword port: the _port on which the server should listen
-        """
         self._port = port
         self._protocol = protocol
         self._is_over = threading.Event()

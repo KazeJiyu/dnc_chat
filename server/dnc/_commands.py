@@ -170,7 +170,12 @@ def reply_file(connection, args):
         return "208 ERR_BADARGUMENT"
 
     if answer == "no":
-        file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} NO")
+        try:
+            file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} NO")
+        except OSError:
+            return "204 ERR_NICKNAMENOTEXIST"
+        finally:
+            del connection._protocol.sender_per_file_request[file_id]
     
     else:
         abort_if(lambda: len(args) < 3, "203 ERR_NOTENOUGHARGS")
@@ -180,10 +185,11 @@ def reply_file(connection, args):
     
         try:
             file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} {answer} {port} {ip}")
-        except KeyError:
+        except OSError:
             return "204 ERR_NICKNAMENOTEXIST"
-    
-    del connection._protocol.sender_per_file_request[file_id]
+        finally:
+            del connection._protocol.sender_per_file_request[file_id]
+            
     return "100 RPL_DONE"
 
 @CommandDispatcher.register_cmd
