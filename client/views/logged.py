@@ -81,14 +81,14 @@ def cmd_ask_file(view, sender, content):
     return item, widget
 
 def cmd_reply_file(view, sender, content):
-    if content.split()[1] == "YES":
+    if content.split()[1] == "yes":
         port = content.split()[2]
         ip = content.split()[3]
-        print(f"{sender} listening ; port {port}, ip : {ip}")
+        print(f"{sender} listening ; port {int(port)}, ip : {ip}")
         request = view.my_file_requests[content.split()[0]]
         # send the file
         with socket(AF_INET, SOCK_DGRAM) as sock:
-            sock.sendto(request.encode(), (ip, port))
+            sock.sendto(request.encode(), (ip, int(port)))
             sock.settimeout(5)
 
         return QListWidgetItem(f"{sender} a accepté votre demande d'envoi de fichier !")

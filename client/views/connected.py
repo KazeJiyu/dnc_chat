@@ -1,4 +1,4 @@
-import os
+import os, queue
 from os.path import basename, splitext
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -6,13 +6,14 @@ from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton, QFileDialog
 
 from client.widgets.connected import Ui_Connected
 
+my_files = queue.Queue()
 
 class Connected(QWidget, Ui_Connected):
     signal_connected = pyqtSignal(str, object)  # document all signals
     signal_handle_response = pyqtSignal(str)
     signal_handle_mute = pyqtSignal(str)
     signal_handle_listen = pyqtSignal(str)
-    signal_handle_file = pyqtSignal(str, str) # filename to send, server's response
+    signal_handle_file = pyqtSignal(str)
 
     def __init__(self, view, parent=None):
         QWidget.__init__(self, parent)
@@ -86,25 +87,28 @@ class Connected(QWidget, Ui_Connected):
             self.signal_connected.emit(f"LISTEN {button.objectName()}", self.signal_handle_listen)
 
     def send_file(self, button):
+        global my_files
         fname = QFileDialog.getOpenFileName(self, 'Open file', '')
 
         if fname[0]:
             with open(fname[0], 'r') as f:
                 filename = basename(f.name)
                 print(f" filename : {filename}")
+                my_files.put(f.name)
                 # data = f.read()
                 statinfo = os.stat(f'{f.name}')
                 print(f"size of data to {button.objectName()[2:]}: {statinfo.st_size}")
-                self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", lambda response: self.signal_handle_file.emit(f.name, response))
+                self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", self.signal_handle_file)
 
-    @QtCore.pyqtSlot(str, str)
-    def handle_file(self, filename, server_response):
+    @QtCore.pyqtSlot(str)
+    def handle_file(self, server_response):
+        global my_files
         if not server_response.startswith('102 RPL_FILE'):
             self.view.msg_accueil.setText("Une erreur est survenue... ")
         else:
 
             self.view.msg_accueil.setText("Requête envoyée ! ")
-            self.view.logged_view.my_file_requests[server_response.split()[2]] = filename
+            self.view.logged_view.my_file_requests[server_response.split()[2]] = my_files.get()
             self.view.update('logged')
 
     @QtCore.pyqtSlot()
