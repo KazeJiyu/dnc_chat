@@ -6,10 +6,14 @@ import sys
 import os
 from typing import Dict
 
+# let python know other modules
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.dirname(__file__))
+
 # Local imports
-from dnc.protocol import DncProtocol
-from tcp import TcpServer
-from utils.errors import print_err
+from server.dnc.protocol import DncProtocol
+from server.tcp import TcpServer
+from server.utils.errors import print_err
 
 def setup_logger(set_verbose, log_file):
     class OneOf():

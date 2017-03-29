@@ -1,9 +1,9 @@
 # Standard modules
 
 # Custom utility functions
-from dnc._data import ConnectionStatus, Client
-from utils.errors import abort_if
-from utils.patterns import Dispatcher
+from server.dnc._data import ConnectionStatus, Client
+from server.utils.errors import abort_if
+from server.utils.patterns import Dispatcher
 
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']

@@ -3,9 +3,9 @@ import logging
 from threading import Lock
 
 # Local imports
-from dnc._commands import CommandDispatcher
-from dnc._data import ConnectionStatus, Clients, Client
-from tcp import Connection, Protocol
+from server.dnc._commands import CommandDispatcher
+from server.dnc._data import ConnectionStatus, Clients, Client
+from server.tcp import Connection, Protocol
 
 class _DncConnection(Connection):
     """
