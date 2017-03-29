@@ -401,6 +401,8 @@ III - Command details
          will be provided by the server, while the port is directly
          specified by the file receiver.
          
+         If the answer is "NO", no port has to be specified.
+         
          Finally, if the recipient accepts to download the file, the 
          the message received by the client who wants to send the file
          is of the following format:
@@ -424,7 +426,7 @@ III - Command details
                                         on the port 8456
             100 RPL_DONE              ; response from the server
             
-            :joe REPLY_FILE YES 8456 192.168.1.1 ; received by jack
+            :joe REPLY_FILE azEer4 YES 8456 192.168.1.1 ; got by jack
          
    
    4. Client's status management
