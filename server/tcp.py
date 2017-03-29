@@ -221,7 +221,7 @@ class TcpServer():
         
         # create the new connection
         connection = self._protocol.create_new_connection()
-        connection.ip = lambda: server_socket.getsockname()[0]
+        connection.ip = lambda: client_socket.getpeername()[0]
         connection.write = lambda message: client_socket.send(message.encode())
         connection.write_to = lambda pseudo, message: self._protocol[pseudo].connection.write(message)
         connection.write_all = lambda message: self._broadcast(client_socket, message.encode())
