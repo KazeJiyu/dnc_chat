@@ -16,6 +16,15 @@ from server.tcp import TcpServer
 from server.utils.errors import print_err
 
 def setup_logger(set_verbose, log_file):
+    """
+    Setups the logger so that it logs everything within a log file,
+    and eventually prints messages to the console.
+    
+    Args:
+    -----
+        set_verbose (bool): `True` if logs should be printed in the console
+        log_file (str): the path toward the file in which write logs 
+    """
     class OneOf():
         
         def __init__(self, *handled_levels):

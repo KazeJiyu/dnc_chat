@@ -1,23 +1,51 @@
 # Standard modules
 
-# Custom utility functions
+# Local imports
 from server.dnc._data import ConnectionStatus, Client
 from server.utils.errors import abort_if
 from server.utils.patterns import Dispatcher
-
-import logging
 
 # Restrict "from _commands import *"
 __all__ = ['CommandDispatcher']
 
 class CommandDispatcher(Dispatcher):
+    """
+    Registers DNC commands, and handles clients' requests.
+    """
     
     @classmethod
     def register_cmd(cls, callback):
+        """
+        A decorator that registers a new command.
+        
+        The name of the command is the name of the function (case is irrelevant),
+        and the content of the function is executed when the command is received
+        by `:func:react`.
+        
+        Registered functions must take two arguments:
+            - (DncConnection): the connection associated with the client that sent
+                               the request
+            - (List[str]): the arguments of the request
+        """
         name = callback.__name__.upper()
         return cls.set_callback(name, callback)
 
     def react(self, message, connection):
+        """
+        Reacts to a client's request.
+        
+        The command to process is the first word of `message`, and the next ones
+        are the arguments.
+        
+        Arguments:
+        ----------
+            message (str): the request's content
+            connection (DncConnection): the connection associated with the client
+            
+        Returns:
+        -------
+            str: the response to send to the client, or `None` if no response has to be send
+        """
         cmd, *args = message.split()
         
         handler = self.dispatch(cmd.upper(), lambda *_: "298 ERR_MALFORMEDREQUEST")
@@ -206,27 +234,20 @@ def reply_file(connection, args):
         return "208 ERR_BADARGUMENT"
 
     if answer == "no":
-        try:
-            file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} NO")
-        except OSError:
-            return "204 ERR_NICKNAMENOTEXIST"
-        finally:
-            del connection._protocol.sender_per_file_request[file_id]
-    
+        response = f":{connection.client.pseudo} REPLY_FILE {file_id} NO"
     else:
         abort_if(lambda: len(args) < 3, "203 ERR_NOTENOUGHARGS")
-    
+        
         port = args[2]
         ip = file_sender.ip()
+        response = f":{connection.client.pseudo} REPLY_FILE {file_id} {answer} {port} {ip}"
         
-        logging.info(f"ip={ip}")
-    
-        try:
-            file_sender.write(f":{connection.client.pseudo} REPLY_FILE {file_id} {answer} {port} {ip}")
-        except OSError:
-            return "204 ERR_NICKNAMENOTEXIST"
-        finally:
-            del connection._protocol.sender_per_file_request[file_id]
+    try:
+        file_sender.write(response)
+    except OSError:
+        return "204 ERR_NICKNAMENOTEXIST"
+    finally:
+        del connection._protocol.sender_per_file_request[file_id]
             
     return "100 RPL_DONE"
 

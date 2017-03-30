@@ -65,7 +65,8 @@ class _DncConnection(Connection):
         
 class DncProtocol(Protocol):
     """
-    
+    Represents the global DNC protocol, and is hence responsible of creating
+    new `DncConnection` for accepted sockets.
     """
     
     def __init__(self):
@@ -77,6 +78,11 @@ class DncProtocol(Protocol):
         self.sender_per_file_request = {}
         
     def generate_file_id(self, file_name):
+        """
+        Generates a unique id for `file_name`. 
+        
+        Used by `ASK_FILE` command in order to identify different requests.
+        """
         with self.lock:
             self.file_id += 1
             
