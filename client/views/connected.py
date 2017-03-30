@@ -35,6 +35,8 @@ class Connected(QWidget, Ui_Connected):
     def handle_response(self, server_response):
         self.connected_ppl.clear()
         self.list_buttons.clear()
+        self.list_files.clear()
+        
         if not server_response.startswith('101 RPL_NAMES'):
             self.view.msg_accueil.setText("Une erreur est survenue... ")
         else:
