@@ -11,8 +11,8 @@ my_files = queue.Queue()
 class Connected(QWidget, Ui_Connected):
     signal_connected = pyqtSignal(str, object)  # document all signals
     signal_handle_response = pyqtSignal(str)
-    signal_handle_mute = pyqtSignal(str)
-    signal_handle_listen = pyqtSignal(str)
+    # signal_handle_mute = pyqtSignal(str)
+    # signal_handle_listen = pyqtSignal(str)
     signal_handle_file = pyqtSignal(str)
 
     def __init__(self, view, parent=None):
@@ -21,8 +21,8 @@ class Connected(QWidget, Ui_Connected):
         self.view = view
         self.signal_connected.connect(self.view.send_request)
         self.signal_handle_response.connect(self.handle_response)
-        self.signal_handle_mute.connect(self.handle_mute)
-        self.signal_handle_listen.connect(self.handle_listen)
+        # self.signal_handle_mute.connect(self.handle_mute)
+        # self.signal_handle_listen.connect(self.handle_listen)
         self.signal_handle_file.connect(self.handle_file)
         self.last_btn_clicked = None
         self.mute_ppl = []
@@ -82,9 +82,16 @@ class Connected(QWidget, Ui_Connected):
     def mute(self, button):
         self.last_btn_clicked = button
         if button.text() == "mute":
-            self.signal_connected.emit(f"MUTE {button.objectName()}", self.signal_handle_mute)
+            # if self.last_btn_clicked.objectName() not in self.mute_ppl:
+            self.mute_ppl.append(self.last_btn_clicked.objectName())
+            self.last_btn_clicked.setText("unmute")
+            self.last_btn_clicked = None
+            # self.signal_connected.emit(f"MUTE {button.objectName()}", self.signal_handle_mute)
         else:
-            self.signal_connected.emit(f"LISTEN {button.objectName()}", self.signal_handle_listen)
+            self.mute_ppl.remove(self.last_btn_clicked.objectName())
+            self.last_btn_clicked.setText("mute")
+            self.last_btn_clicked = None
+            # self.signal_connected.emit(f"LISTEN {button.objectName()}", self.signal_handle_listen)
 
     def send_file(self, button):
         global my_files
@@ -93,11 +100,9 @@ class Connected(QWidget, Ui_Connected):
         if fname[0]:
             with open(fname[0], 'r') as f:
                 filename = basename(f.name)
-                print(f" filename : {filename}")
-                my_files.put(f.name)
                 # data = f.read()
                 statinfo = os.stat(f'{f.name}')
-                print(f"size of data to {button.objectName()[2:]}: {statinfo.st_size}")
+                my_files.put((f.name, statinfo.st_size))
                 self.signal_connected.emit(f"ASK_FILE {button.objectName()[2:]} {statinfo.st_size} {filename}", self.signal_handle_file)
 
     @QtCore.pyqtSlot(str)
@@ -106,9 +111,11 @@ class Connected(QWidget, Ui_Connected):
         if not server_response.startswith('102 RPL_FILE'):
             self.view.msg_accueil.setText("Une erreur est survenue... ")
         else:
-
-            self.view.msg_accueil.setText("Requête envoyée ! ")
+            print("in handle file")
+            self.view.msg_accueil.setText(f"Requête envoyée !")
             self.view.logged_view.my_file_requests[server_response.split()[2]] = my_files.get()
+            print(f" my file requests : {self.view.logged_view.my_file_requests}")
+
             self.view.update('logged')
 
     @QtCore.pyqtSlot()

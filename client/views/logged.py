@@ -1,8 +1,10 @@
 from socket import *
+import threading
+from threading import Thread, Event
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout, QLayout
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QPushButton, QLabel, QHBoxLayout, QLayout, QFileDialog
 
 from client.widgets.logged import Ui_Logged
 
@@ -64,6 +66,7 @@ def cmd_ask_file(view, sender, content):
     ignorer.clicked.connect(lambda: view.signal_handle_file.emit("NO", content.split()[0]))
     message = f"{sender} désire vous envoyer un fichier nommé {content.split()[2]} de {content.split()[1]} bytes. " \
            f"Acceptez-vous ?"
+    view.my_file_requests[content.split()[0]] = (content.split()[2],content.split()[1])
 
     # create a new widget to display the message and the buttons at once
     widgetLayout = QHBoxLayout()
@@ -81,15 +84,17 @@ def cmd_ask_file(view, sender, content):
     return item, widget
 
 def cmd_reply_file(view, sender, content):
-    if content.split()[1] == "yes":
+    if content.split()[1].lower() == "yes":
         port = content.split()[2]
         ip = content.split()[3]
         print(f"{sender} listening ; port {int(port)}, ip : {ip}")
-        request = view.my_file_requests[content.split()[0]]
         # send the file
-        with socket(AF_INET, SOCK_DGRAM) as sock:
-            sock.sendto(request.encode(), (ip, int(port)))
-            sock.settimeout(5)
+        filename = view.my_file_requests[content.split()[0]][0]
+        with open(filename, 'r') as f:
+            data = f.read()
+            with socket(AF_INET, SOCK_DGRAM) as sock:
+                sock.sendto(data.encode(), (ip, int(port)))
+                print("file sent")
 
         return QListWidgetItem(f"{sender} a accepté votre demande d'envoi de fichier !")
     return QListWidgetItem(f"{sender} a refusé votre demande d'envoi de fichier.")
@@ -136,7 +141,10 @@ class Logged(QWidget, Ui_Logged):
             if new_msg.startswith(':'):
                 sender = ''.join(new_msg.split()[:1]).lstrip(':')
                 content = ' '.join(new_msg.split()[2:])
-                item = self.commands[new_msg.split()[1]](self, sender, content)
+                if sender not in self.view.connected_view.mute_ppl:
+                    item = self.commands[new_msg.split()[1]](self, sender, content)
+                else:
+                    return
             else:
                 if not self.view.actionPasser_en_mode_actif.isEnabled():
                     item = QListWidgetItem(f"Moi : {new_msg}")
@@ -157,12 +165,24 @@ class Logged(QWidget, Ui_Logged):
     def handle_file(self, reply, request_id):
         if reply == "YES":
             port = 8432  # open a udp connection
-            TAILLE_TAMPON = 256
-            sock = socket(AF_INET, SOCK_DGRAM)
-            sock.bind(('', port))
+
+            name = QFileDialog.getSaveFileName(self, 'Save File')
+            Thread(target=self.receive_files, args=(name[0], request_id, port)).start()
             self.signal_msg.emit(f"REPLY_FILE {request_id} {reply} {port}", self.signal_handle_response)
         else:
             self.signal_msg.emit(f"REPLY_FILE {request_id} {reply}", self.signal_handle_response)
+
+    def receive_files(self, new_file_name, request_id, port):
+        file_size = self.my_file_requests[request_id][1]
+        with socket(AF_INET, SOCK_DGRAM) as sock:
+            sock.bind(('', port))
+            print(f"socket bound")
+            requete = sock.recvfrom(int(file_size))
+            (mess, adr_client) = requete
+            received_file = mess.decode()
+
+            with open(new_file_name, 'w') as file:
+                file.write(received_file)
 
     @QtCore.pyqtSlot()
     def on_send_msg_clicked(self):
