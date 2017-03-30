@@ -24,6 +24,7 @@ class _DncConnection(Connection):
         self.status = ConnectionStatus.NOT_CONNECTED
         self.client = None
         self.private = set()
+        self.ignored = set()
         
     def __eq__(self, rhs):
         return self.client == rhs.client
@@ -32,7 +33,6 @@ class _DncConnection(Connection):
         return hash(self.client.pseudo) if self.client else "None" 
         
     def on_data_received(self, data):
-        
         if self.client:
             logging.info(f"FROM {self.ip()} - {self.client.pseudo}: {data}")
         else:
@@ -64,6 +64,9 @@ class _DncConnection(Connection):
         self.on_connection_closed()
         
 class DncProtocol(Protocol):
+    """
+    
+    """
     
     def __init__(self):
         self.clients = Clients()
@@ -88,6 +91,7 @@ class DncProtocol(Protocol):
     
     def allows_to_send(self, sender, receiver, message):
         return receiver.client is not None \
+           and sender not in receiver.ignored \
            and sender.status is not ConnectionStatus.NOT_CONNECTED 
     
     def add_client(self, login):
