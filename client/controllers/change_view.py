@@ -24,6 +24,7 @@ class MainView(QWidget, Ui_MainWindow):
     signal_ask = pyqtSignal(str)
     signal_stop = pyqtSignal(str)
     signal_messages = pyqtSignal(str)
+    signal_change_msg_accueil = pyqtSignal(str)
 
     def __configure(self, config_file):
         options = ConfigParser()
@@ -72,6 +73,7 @@ class MainView(QWidget, Ui_MainWindow):
         self.signal_nick.connect(self.handle_nick)
         self.signal_ask.connect(self.handle_ask)
         self.signal_stop.connect(self.handle_stop)
+        self.signal_change_msg_accueil.connect(lambda message: self.msg_accueil.setText(message))
 
         self.actionPasser_en_mode_actif.setEnabled(False)
 
@@ -121,16 +123,10 @@ class MainView(QWidget, Ui_MainWindow):
             self.sock.send(req.encode())
             if callback:
                 callbacks.put(callback)
-        except socket.gaierror:
-            print(" [Error] Hostname could not be resolved")
-        except socket.timeout:
-            print(" [Error] Timeout: no response received from the server")
-        except ConnectionResetError:
-            print(" [Error] Unable to establish a connection")
         except KeyboardInterrupt:
             pass
-        except Exception as e:
-            print(" [Error] " + str(e))
+        except:
+            self.msg_accueil.setText("Impossible d'accéder au server,\n veuillez relancer le programme.")
 
 
     def listen_in_background(self, ip, port, view):
@@ -148,7 +144,7 @@ class MainView(QWidget, Ui_MainWindow):
                     message = sock.recv(2048).decode()
                     print("I HAVE GOT : " + message)
                     if not message:
-                        # print("I RECEIVED NOTHING, BOUUUUH :(")
+                        self.signal_change_msg_accueil.emit("Connection avec le server perdue,\nveuillez relancer le programme")
                         main_program_is_over.set()  # si le serveur s'est arreté (envoyer plutot un signal d'erreur)
                         return
                     if not message.startswith(':'):
