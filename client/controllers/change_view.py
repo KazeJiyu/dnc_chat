@@ -142,15 +142,13 @@ class MainView(QWidget, Ui_MainWindow):
             while not main_program_is_over.is_set():
                 try:
                     message = sock.recv(2048).decode()
-                    print("I HAVE GOT : " + message)
                     if not message:
                         self.signal_change_msg_accueil.emit("Connection avec le server perdue,\nveuillez relancer le programme")
                         main_program_is_over.set()  # si le serveur s'est arreté (envoyer plutot un signal d'erreur)
                         return
                     if not message.startswith(':'):
                         if callbacks.empty():
-                            print("i ain't got time for dis shit")
-                            # pass
+                            pass
                         else:
                             callback = callbacks.get()  # dat shit is bloquante
                             callback.emit(message)  # par exemple, appelle handle_response() de login

@@ -45,7 +45,6 @@ def cmd_ask_whisper(view, sender, content):
     return item, widget
 
 def cmd_reply_whisper(view, sender, content):
-    print("in cmd_reply_whisper")
     if content == "YES":
         view.private_conversations.append(sender)
         return QListWidgetItem(f"{sender} a accepté votre demande de conversation privée !")
@@ -87,15 +86,22 @@ def cmd_reply_file(view, sender, content):
     if content.split()[1].lower() == "yes":
         port = content.split()[2]
         ip = content.split()[3]
-        print(f"{sender} listening ; port {int(port)}, ip : {ip}")
+        
         # send the file
         filename = view.my_file_requests[content.split()[0]][0]
-        with open(filename, 'r') as f:
-            data = f.read()
-            with socket(AF_INET, SOCK_DGRAM) as sock:
-                sock.sendto(data.encode(), (ip, int(port)))
-                print("file sent")
-
+        file_size = view.my_file_requests[content.split()[0]][1]
+        
+        amount_read = 0
+        
+        with open(filename, 'rb') as f:
+            while True and amount_read < file_size:
+                data = f.read(1048)
+                
+                amount_read += 1048
+                
+                with socket(AF_INET, SOCK_DGRAM) as sock:
+                    sock.sendto(data, (ip, int(port)))
+                    
         return QListWidgetItem(f"{sender} a accepté votre demande d'envoi de fichier !")
     return QListWidgetItem(f"{sender} a refusé votre demande d'envoi de fichier.")
 
@@ -177,13 +183,20 @@ class Logged(QWidget, Ui_Logged):
         with socket(AF_INET, SOCK_DGRAM) as sock:
             sock.bind(('', port))
             print(f"socket bound")
-            requete = sock.recvfrom(int(file_size))
-            (mess, adr_client) = requete
-            received_file = mess.decode()
+            amount_received = 0
+            
+            while True and amount_received < int(file_size):
+                requete = sock.recvfrom(1048)
+                amount_received += 1048
+                
+                if not requete:
+                    break;
+                
+                (mess, adr_client) = requete
 
-            with open(new_file_name, 'w') as file:
-                file.write(received_file)
-
+                with open(new_file_name, 'ab') as file:
+                    file.write(mess)
+                    
     @QtCore.pyqtSlot()
     def on_send_msg_clicked(self):
         msg_content = self.msg.toPlainText()
