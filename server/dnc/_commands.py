@@ -282,7 +282,7 @@ def nick(connection, args):
     if len(new_nick) > 10 or new_nick.startswith('@') or ',' in new_nick:
         return "206 ERR_INVALIDNICKNAME"
     
-    connection.write_all(":" + connection.client.pseudo + " NICK " + " " + new_nick)
+    connection.write_all(":" + connection.client.pseudo + " NICK " + " " + new_nick)  
     connection._protocol.clients.rename(connection.client, args[0])
     
     return "100 RPL_DONE"

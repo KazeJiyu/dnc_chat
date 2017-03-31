@@ -3,7 +3,7 @@ from threading import Lock
 
 # Local imports
 from enum import Enum
-from utils.errors import abort_if
+from server.utils.errors import abort_if
 
 class ConnectionStatus(Enum):
     AWAY = 'away'
@@ -39,7 +39,6 @@ class Clients:
 
     def __init__(self):
         self.__clients = {}
-        self.__lock = Lock()
       
     @property
     def all(self):
@@ -49,17 +48,15 @@ class Clients:
         return self.__clients[pseudo]
       
     def from_address(self, address):
-        with self.__lock:
-            return next((client for client in self.all.values() if client.address == address), None)
+        return next((client for client in self.all.values() if client.address == address), None)
     
     def rename(self, client, new_pseudo):
-        with self.__lock:
-            if isinstance(client, str):
-                client = self[client]
+        if isinstance(client, str):
+            client = self[client]
             
-            self -= client
-            client.pseudo = new_pseudo
-            self += client
+        self -= client
+        client.pseudo = new_pseudo
+        self += client
         
     def __contains__(self, client):
         if isinstance(client, Client):
@@ -83,8 +80,7 @@ class Clients:
         raise KeyError
             
     def __setitem__(self, pseudo, client):
-        with self.__lock:
-            self.__clients[pseudo] = client
+        self.__clients[pseudo] = client
       
     def __iadd__(self, client):
         abort_if(lambda: not isinstance(client,Client), "cannot add a non Client instance")
@@ -93,11 +89,10 @@ class Clients:
         return self
         
     def __isub__(self, client):
-        with self.__lock:
-            if isinstance(client, Client):
-                del self.all[client.pseudo]
-            elif isinstance(client, tuple):
-                del self.all[ self[client].pseudo ]
-            elif isinstance(client, str):
-                del self.all[client]
-            return self
+        if isinstance(client, Client):
+            del self.all[client.pseudo]
+        elif isinstance(client, tuple):
+            del self.all[ self[client].pseudo ]
+        elif isinstance(client, str):
+            del self.all[client]
+        return self
